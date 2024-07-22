@@ -40,23 +40,20 @@ void Functions::PlayGame() {
 void Functions::MainMenu() {
     GLOBALS::window.ClearBackground(raylib::Color::DarkGray());
     FunctionalBox fPlayGame(
-        { 100.0f, 100.0f}, 
-        raylib::Color::Red(), 
-        "Play game", 
-        raylib::Color::Yellow(), 
-        20Ui8);
+        {100.0f, 100.0f},
+        RED,
+        raylib::Text("Play game", 20, YELLOW, GetFontDefault(), 1.0f)
+        );
     FunctionalBox fSettings(
-        { 100.0f, 140.0f}, 
-        raylib::Color::Red(), 
-        "Settings", 
-        raylib::Color::Green(),
-        20Ui8);
+        { 100.0f, 140.0f },
+        RED,
+        raylib::Text("Settings", 20, GREEN, GetFontDefault(), 1.0f)
+        );
     FunctionalBox fExit(
         { 100.0f, 180.0f },
-        raylib::Color::Red(), 
-        "Exit", 
-        raylib::Color::Beige(), 
-        20Ui8);
+        RED,
+        raylib::Text("Exit", 20, BEIGE, GetFontDefault(), 1.0f)
+        );
 
     if (fPlayGame.update() && IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_LEFT)) {
         GLOBALS::gStack.pushToTop(FUNC_ID::ID_PLAY_GAME);
@@ -72,16 +69,15 @@ void Functions::MainMenu() {
 void Functions::Settings() {
     GLOBALS::window.ClearBackground(raylib::Color::DarkGray());
     FunctionalBox fKB(
-        { 100.0f, 100.0f}, raylib::Color::Red(),
-        "KEYBOARD", 
-        raylib::Color::Yellow(), 
-        20Ui8);
+        { 100.0f, 100.0f },
+        RED,
+        raylib::Text("KEYBOARD", 20, YELLOW, GetFontDefault(), 1.0f)
+        );
     FunctionalBox fSD(
-        { 100.0f, 140.0f }, 
-        raylib::Color::Red(), 
-        "SOUND", 
-        raylib::Color::Yellow(), 
-        20Ui8);
+        { 100.0f, 140.0f },
+        RED,
+        raylib::Text("SOUND", 20, YELLOW, GetFontDefault(), 1.0f)
+        );
 
     if (fKB.update() && IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_LEFT)) {
         GLOBALS::gStack.pushToTop(FUNC_ID::ID_SETTINGS_KEYBOARD);
@@ -102,16 +98,12 @@ void Functions::Exit() {
     GLOBALS::window.ClearBackground(raylib::Color::DarkGray());
     FunctionalBox f1(
         { 100.0f, 100.0f },
-        raylib::Color::Red(),
-        "CLICK ME TO EXIT",
-        raylib::Color::Yellow(),
-        20Ui8);
+        RED,
+        raylib::Text("Click me to exit", 20, YELLOW, GetFontDefault(), 1.0f));
     FunctionalBox f2(
         { 100.0f, 140.0f },
-        raylib::Color::Red(),
-        "PRESS BACKSPACE TO COMEBACK",
-        raylib::Color::Yellow(),
-        20Ui8);
+        RED,
+        raylib::Text("Press backspace to comeback", 20, YELLOW, GetFontDefault(), 1.0f));
 
     if (f1.update() && IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_LEFT)) {
         GLOBALS::exitWindow = true;
@@ -126,18 +118,14 @@ void Functions::Exit() {
 void Functions::SettingsKeyBoard() {
     GLOBALS::window.ClearBackground(raylib::Color::DarkGray());
     FunctionalBox fShoot(
-        { 20, 10 },
-        raylib::Color::Red(),
-        "Shoot: " + raylib::KeyInputToChar(KeyInputs::SHOOT),
-        raylib::Color::Beige(),
-        20
+        {20.0f, 10.0f},
+        RED,
+        raylib::Text("Shoot: " + raylib::KeyInputToChar(KeyInputs::SHOOT), 20, BEIGE, GetFontDefault(), 1.0f)
     );
     FunctionalBox fFly(
-        { 20, 30 },
-        raylib::Color::Red(),
-        "Fly: " + raylib::KeyInputToChar(KeyInputs::FLY),
-        raylib::Color::Beige(),
-        20
+        { 20.0f, 30.0f },
+        RED,
+        raylib::Text("Fly: " + raylib::KeyInputToChar(KeyInputs::FLY), 20, BEIGE, GetFontDefault(), 1.0f)
     );  
  
     if (fShoot.update()) {
@@ -156,25 +144,19 @@ void Functions::SettingsSound() {
     GLOBALS::window.ClearBackground(raylib::Color::DarkGray());
 
     FunctionalBox fSG(
-        { 20, 10 },
-        raylib::Color::Red(),
-        "GENERAL SOUND: ",
-        raylib::Color::Beige(),
-        20
+        { 20.0f, 10.0f },
+        RED,
+        raylib::Text("GENERAL SOUND: ", 20, YELLOW, GetFontDefault(), 1.0f)
     );
     FunctionalBox fSM(
-        { 20, 30 },
-        raylib::Color::Red(),
-        "MUSIC SOUND: ",
-        raylib::Color::Beige(),
-        20
+        { 20.0f, 30.0f },
+        RED,
+        raylib::Text("MUSIC SOUND: ", 20, YELLOW, GetFontDefault(), 1.0f)
     );
     FunctionalBox fSP(
-        { 20, 50 },
-        raylib::Color::Red(),
-        "PLAYER SOUND: ",
-        raylib::Color::Beige(),
-        20
+        { 20.0f, 50.0f },
+        RED,
+        raylib::Text("PLAYER SOUND: ", 20, YELLOW, GetFontDefault(), 1.0f)
     );
 
     fSG.update();

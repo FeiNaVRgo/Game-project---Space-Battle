@@ -128,7 +128,8 @@ int main() {
     GLOBALS::gCoordinator.AddComponent<Sprite>(player, Sprite{
         .sprite = raylib::Texture2DUnmanaged("resources/PlayerModel.png"),
         .angle = 0.0f,
-        .tint = {255, 255, 255, 255}
+        .tint = {255, 255, 255, 255},
+        .origin = raylib::Vector2(raylib::Texture2D("resources/PlayerModel.png").width * 0.5f, raylib::Texture2D("resources/PlayerModel.png").height * 0.5f)
         });
     GLOBALS::gCoordinator.AddComponent<PlayerSpecific>(player, PlayerSpecific{
         .dash = 1.0f

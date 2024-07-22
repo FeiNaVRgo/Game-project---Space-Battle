@@ -29,6 +29,10 @@ class Hitbox {
 public:
 	raylib::Rectangle hitboxRect;
 	raylib::Color hitboxColor;
+
+	raylib::Vector2 getHitBoxCenter() {
+		return hitboxRect.GetPosition() + hitboxRect.GetSize() / 2.0f;
+	}
 };
 
 template<typename T>
@@ -57,6 +61,11 @@ struct Sprite {
 	raylib::Texture2DUnmanaged sprite;//1
 	float angle;//2
 	raylib::Color tint;//3
+	raylib::Vector2 origin;//4
+
+	~Sprite() {
+		//sprite.Unload();
+	}
 };
 
 struct Health {
@@ -66,6 +75,17 @@ struct Health {
 	float frameImmunityTime;//4
 	float healthToSubstract;//5
 	bool toBeDamaged;//6
+
+	void drawHealthBar(const raylib::Vector2& origin, const raylib::Vector2& offsetFromOrigin) {
+		raylib::Rectangle r1 = { origin + offsetFromOrigin - raylib::Vector2(maxHealth / 2.0f, 0), raylib::Vector2(maxHealth, 20) };
+		raylib::Rectangle r2 = { origin + offsetFromOrigin - raylib::Vector2(maxHealth / 2.0f, 0), raylib::Vector2(health, 20) - raylib::Vector2(1, 1)};
+		r2.Draw(BLUE);
+		r1.DrawLines(BLACK);
+	}
+
+	void drawDamageIndicator() {
+		//task for particle system
+	}
 };
 
 struct PlayerSpecific {
@@ -162,7 +182,7 @@ public:
 			sprite.sprite.Draw(
 				raylib::Rectangle(0.0f, 0.0f, sprite.sprite.width, sprite.sprite.height),
 				raylib::Rectangle(transform.position.x, transform.position.y, sprite.sprite.width, sprite.sprite.height),
-				raylib::Vector2(sprite.sprite.width * 0.5f, sprite.sprite.height * 0.5f),
+				raylib::Vector2(sprite.origin),
 				sprite.angle * RAD2DEG,
 				sprite.tint
 			);
@@ -248,7 +268,8 @@ public:
 				GLOBALS::gCoordinator.AddComponent<Sprite>(entity1, Sprite{
 					.sprite = raylib::Texture2DUnmanaged("resources/PlayerBulletModel.png"),
 					.angle = sprite.angle,
-					.tint = {255, 255, 255, 255}
+					.tint = {255, 255, 255, 255},
+					.origin = raylib::Vector2(raylib::Texture2D("resources/PlayerBulletModel.png").width * 0.5f, raylib::Texture2D("resources/PlayerBulletModel.png").height * 0.5f)
 					});
 				GLOBALS::gCoordinator.AddComponent<Health>(entity1, Health{
 					.maxHealth = 5.0f,
@@ -281,6 +302,8 @@ struct HealthSystem : public ECS::System {
 			auto& rigidBody = GLOBALS::gCoordinator.GetComponent<RigidBody>(entity);
 			auto& timerComponent = GLOBALS::gCoordinator.GetComponent<TimerComponent>(entity);
 			auto& entitySpecific = GLOBALS::gCoordinator.GetComponent<EntitySpecific>(entity);
+
+			_health.drawHealthBar(rigidBody.hitbox.getHitBoxCenter(), raylib::Vector2(0, sprite.sprite.height / 2.0f + 2));
 
 			if (_health.isDamaged) {
 				sprite.tint = { 230, 41, 55, 255 };
@@ -344,7 +367,7 @@ struct CollisionSystem : public ECS::System {
 					}
 
 					if ((entitySpecific1.id == ENTITY_ID::ENEMY_ID && entitySpecific1.id == ENTITY_ID::ENEMY_ID) || (entitySpecific1.id == ENTITY_ID::PLAYER_ID && entitySpecific1.id == ENTITY_ID::ENEMY_ID)) {
-
+						//handling collison here bruh
 					}
 				}
 			}
@@ -392,7 +415,8 @@ struct EnemySpawningSystem : public ECS::System{
 					GLOBALS::gCoordinator.AddComponent<Sprite>(entity1, Sprite{
 						.sprite = raylib::Texture2DUnmanaged("resources/EnemyModel.png"),
 						.angle = 0.0f,
-						.tint = {255, 255, 255, 255}
+						.tint = {255, 255, 255, 255},
+						.origin = raylib::Vector2(raylib::Texture2D("resources/EnemyModel.png").width * 0.5f, raylib::Texture2D("resources/EnemyModel.png").height * 0.5f)
 						});
 					GLOBALS::gCoordinator.AddComponent<Health>(entity1, Health{
 						.maxHealth = 30.0f,
@@ -457,16 +481,17 @@ struct EntityRemovalSystem : ECS::System {
 			auto& rigidBody = GLOBALS::gCoordinator.GetComponent<RigidBody>(entity);
 			auto& sprite = GLOBALS::gCoordinator.GetComponent<Sprite>(entity);
 
-			sprite.sprite.Unload();
 			spatial_hash::gGird.remove(entity, rigidBody.hitbox.hitboxRect.GetPosition());
+			sprite.sprite.Unload();
 			GLOBALS::gCoordinator.DestroyEntity(entity);
 		}
 
 		GLOBALS::gEntitySetToBeDestroyed.clear();
 
+		spatial_hash::gGird.clearAllTiles();
+
 		for (auto const& entity : mEntities) {
 			auto& rigidBody = GLOBALS::gCoordinator.GetComponent<RigidBody>(entity);
-			spatial_hash::gGird.remove(entity, rigidBody.hitbox.hitboxRect.GetPosition());
 			spatial_hash::gGird.insert(entity, rigidBody.hitbox.hitboxRect);
 		}
 	}

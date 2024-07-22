@@ -151,6 +151,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Stack.cpp" />
     <ClCompile Include="Timer.cpp" />
+    <ClCompile Include="UI.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="resources\DEFAULT_TEXTURE.png" />
@@ -169,6 +170,7 @@
     <ClInclude Include="spatialHash\types.h" />
     <ClInclude Include="Stack.h" />
     <ClInclude Include="Timer.h" />
+    <ClInclude Include="UI.h" />
     <ClInclude Include="utils.h" />
   </ItemGroup>
   <ItemGroup>

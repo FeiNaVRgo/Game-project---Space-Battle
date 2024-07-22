@@ -58,7 +58,7 @@ namespace raylib {
 		for (int i = 0; i < 4; i++) {
 			isCollision[i] = CheckCollisionPointPoly(vecs1[i], vecs2, 4);
 		}
-
+		
 		delete[] vecs1;
 		delete[] vecs2;
 

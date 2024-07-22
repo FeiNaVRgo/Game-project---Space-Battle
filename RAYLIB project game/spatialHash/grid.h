@@ -110,7 +110,7 @@ namespace spatial_hash {
 			return entityQuery;
 		}
 
-		void clearAlllTiles() {
+		void clearAllTiles() {
 			for (auto& [m, t] : tileMap) {
 				t.entitySet.clear();
 			}
