@@ -248,7 +248,7 @@ public:
 				else { GLOBALS::debugMode = false; }
 			}
 
-			GLOBALS::gTimer.insertTimer(1, Timer(1000, TIMER_ID::WAITTIMER_ID));
+			GLOBALS::gTimer.insertTimer(1, Timer(100, TIMER_ID::WAITTIMER_ID));
 
 			if (raylib::IsKeyOrMouseDown(KeyInputs::SHOOT) && GLOBALS::gTimer.checkTimer(1)) {
 				GLOBALS::gTimer.resetTimer(1);
@@ -307,7 +307,7 @@ struct HealthSystem : public ECS::System {
 
 			if (_health.isDamaged) {
 				sprite.tint = { 230, 41, 55, 255 };
-				timerComponent.timerCont.insertTimer(1, Timer(1000, TIMER_ID::WAITTIMER_ID));
+				timerComponent.timerCont.insertTimer(1, Timer(10, TIMER_ID::WAITTIMER_ID));
 
 				if (_health.toBeDamaged) {
 					_health.health -= _health.healthToSubstract;
@@ -395,7 +395,7 @@ struct EnemySpawningSystem : public ECS::System{
 				for (int i = 0; i < GLOBALS::gEnemyCounter; i++) {
 					Vector2 v = { distribX(gen), distribY(gen) };
 
-					while (Vector2Distance(vP, v) < 70 || !GLOBALS::gridRect.CheckCollision(v)) {
+ 					while (Vector2Distance(vP, v) < 70 || !GLOBALS::gridRect.CheckCollision(v)) {
 						v = { (float)distribX(gen), (float)distribY(gen) };
 					}
 

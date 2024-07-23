@@ -111,7 +111,6 @@ int main() {
     signature9.set(GLOBALS::gCoordinator.GetComponentType<Sprite>());
     GLOBALS::gCoordinator.SetSystemSignature<EntityRemovalSystem>(signature9);
 
-
     ECS::Entity player = GLOBALS::gCoordinator.CreateEntity();
     GLOBALS::gCoordinator.AddComponent<Transforms>(player, Transforms{
         .position = Vector2(GLOBALS::gridRect.width / 2.0f, GLOBALS::gridRect.height / 2.0f),
