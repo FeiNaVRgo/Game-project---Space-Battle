@@ -25,7 +25,7 @@ void Functions::PlayGame() {
     std::any_cast<std::shared_ptr<EnemySpawningSystem>>(GLOBALS::enemySpawningSystem)->update();
     std::any_cast<std::shared_ptr<EnemyAIMovmentSystem>>(GLOBALS::enemyAIMovmentSystem)->update();
     std::any_cast<std::shared_ptr<CollisionSystem>>(GLOBALS::collisionSystem)->update();
-    std::any_cast<std::shared_ptr<BulletRemovalSystem>>(GLOBALS::bulletRemovalSystem)->update();
+    std::any_cast<std::shared_ptr<BulletManipulationSystem>>(GLOBALS::bulletRemovalSystem)->update();
     std::any_cast<std::shared_ptr<HealthSystem>>(GLOBALS::healthSystem)->update();
     std::any_cast<std::shared_ptr<EntityRemovalSystem>>(GLOBALS::entityRemovalSystem)->update();
 

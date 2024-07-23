@@ -87,13 +87,15 @@ int main() {
     signature6.set(GLOBALS::gCoordinator.GetComponentType<Enemy>());
     GLOBALS::gCoordinator.SetSystemSignature<EnemyAIMovmentSystem>(signature6);
 
-    GLOBALS::bulletRemovalSystem = GLOBALS::gCoordinator.RegisterSystem<BulletRemovalSystem>();
+    GLOBALS::bulletRemovalSystem = GLOBALS::gCoordinator.RegisterSystem<BulletManipulationSystem>();
 
     ECS::Signature signature7;
     signature7.set(GLOBALS::gCoordinator.GetComponentType<RigidBody>());
     signature7.set(GLOBALS::gCoordinator.GetComponentType<Health>());
     signature7.set(GLOBALS::gCoordinator.GetComponentType<Bullet>());
-    GLOBALS::gCoordinator.SetSystemSignature<BulletRemovalSystem>(signature7);
+    signature7.set(GLOBALS::gCoordinator.GetComponentType< MovmentAI>());
+    signature7.set(GLOBALS::gCoordinator.GetComponentType<Sprite>());
+    GLOBALS::gCoordinator.SetSystemSignature<BulletManipulationSystem>(signature7);
 
     GLOBALS::collisionSystem = GLOBALS::gCoordinator.RegisterSystem<CollisionSystem>();
 
@@ -137,7 +139,7 @@ int main() {
         .maxHealth = 30.0f,
         .health = 30.0f,
         .isDamaged = false,
-        .frameImmunityTime = 20.0f,
+        .frameImmunityTime = 500,
         .healthToSubstract = 0.0f,
         .toBeDamaged = false
         });

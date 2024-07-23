@@ -72,7 +72,7 @@ struct Health {
 	float maxHealth;//1
 	float health;//2
 	bool isDamaged;//3
-	float frameImmunityTime;//4
+	uint16_t frameImmunityTime;//4
 	float healthToSubstract;//5
 	bool toBeDamaged;//6
 
@@ -151,6 +151,20 @@ struct MovmentAI {
 		else {
 			velocity = { 0.0f, 0.0f };
 		}
+	}
+
+	/**
+	* @brief for bullets movment pattern
+	* @param angle  -  to change rotation in sinusoidal pattern
+	* @param ampltidue  -  how far wave expand
+	* @param frequency  -  how fast its going up and down
+	*/
+	void sinwaveMovment(float speed ,float angle, float ampltidue, float frequency, raylib::Vector2& velocity) {
+		float beta = angle + PI / 2.0f;
+		float currentDistance = ampltidue * sinf(GetTime() * frequency);
+
+		velocity.x = sinf(beta) * currentDistance + sinf(angle) * speed;
+		velocity.y = -cosf(beta) * currentDistance + -cosf(angle) * speed;
 	}
 };
 
@@ -248,7 +262,7 @@ public:
 				else { GLOBALS::debugMode = false; }
 			}
 
-			GLOBALS::gTimer.insertTimer(1, Timer(100, TIMER_ID::WAITTIMER_ID));
+			GLOBALS::gTimer.insertTimer(1, Timer(400, TIMER_ID::WAITTIMER_ID));
 
 			if (raylib::IsKeyOrMouseDown(KeyInputs::SHOOT) && GLOBALS::gTimer.checkTimer(1)) {
 				GLOBALS::gTimer.resetTimer(1);
@@ -275,7 +289,7 @@ public:
 					.maxHealth = 5.0f,
 					.health = 5.0f,
 					.isDamaged = false,
-					.frameImmunityTime = 5.0f,
+					.frameImmunityTime = 1,
 					.healthToSubstract = 0.0f,
 					.toBeDamaged = false
 					});
@@ -286,6 +300,7 @@ public:
 					});
 				GLOBALS::gCoordinator.AddComponent<TimerComponent>(entity1, TimerComponent{});
 				ComponentCommons::addComponent<Damage>(entity1, 5, 5);
+				ComponentCommons::addComponent<MovmentAI>(entity1);
 
 				auto& t = GLOBALS::gCoordinator.GetComponent<RigidBody>(entity1);
 				spatial_hash::gGird.insert(entity1, t.hitbox.hitboxRect);
@@ -307,7 +322,7 @@ struct HealthSystem : public ECS::System {
 
 			if (_health.isDamaged) {
 				sprite.tint = { 230, 41, 55, 255 };
-				timerComponent.timerCont.insertTimer(1, Timer(10, TIMER_ID::WAITTIMER_ID));
+				timerComponent.timerCont.insertTimer(1, Timer(_health.frameImmunityTime, TIMER_ID::WAITTIMER_ID));
 
 				if (_health.toBeDamaged) {
 					_health.health -= _health.healthToSubstract;
@@ -389,8 +404,8 @@ struct EnemySpawningSystem : public ECS::System{
 				std::mt19937 gen(rd());
 
 				raylib::Vector2 vP = GLOBALS::gPlayerPos;
-				std::uniform_int_distribution<> distribX(vP.x - 100, vP.y + 100);
-				std::uniform_int_distribution<> distribY(vP.x - 100, vP.y + 100);
+				std::uniform_int_distribution distribX(static_cast<int>(vP.x) - 100, static_cast<int>(vP.x) + 100);
+				std::uniform_int_distribution distribY(static_cast<int>(vP.y) - 100, static_cast<int>(vP.y) + 100);
 
 				for (int i = 0; i < GLOBALS::gEnemyCounter; i++) {
 					Vector2 v = { distribX(gen), distribY(gen) };
@@ -422,7 +437,7 @@ struct EnemySpawningSystem : public ECS::System{
 						.maxHealth = 30.0f,
 						.health = 30.0f,
 						.isDamaged = false,
-						.frameImmunityTime = 5.0f,
+						.frameImmunityTime = 10,
 						.healthToSubstract = 0.0f,
 						.toBeDamaged = false
 						});
@@ -460,13 +475,17 @@ struct EnemyAIMovmentSystem : ECS::System {
 	}
 };
 
-struct BulletRemovalSystem : ECS::System {
+struct BulletManipulationSystem : ECS::System {
 	void update() {
 		for (auto const& entity : mEntities) {
 			auto& rigidBody = GLOBALS::gCoordinator.GetComponent<RigidBody>(entity);
 			auto& health = GLOBALS::gCoordinator.GetComponent<Health>(entity);
+			auto& movmentAI = GLOBALS::gCoordinator.GetComponent<MovmentAI>(entity);
+			auto& sprite = GLOBALS::gCoordinator.GetComponent<Sprite>(entity);
 			auto& bullet = GLOBALS::gCoordinator.GetComponent<Bullet>(entity);
 			
+
+			movmentAI.sinwaveMovment(200.0f, sprite.angle, 1000, 30, rigidBody.velocity);
 
 			if (!raylib::containsRect(GLOBALS::gridRect, rigidBody.hitbox.hitboxRect)) {
 				health.health = 0.0f;
