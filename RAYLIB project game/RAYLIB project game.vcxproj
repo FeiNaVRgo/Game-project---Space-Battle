@@ -161,6 +161,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Components.h" />
+    <ClInclude Include="Coroutines.h" />
     <ClInclude Include="ECS.h" />
     <ClInclude Include="FunctionalBox.h" />
     <ClInclude Include="GeometryCalc.h" />

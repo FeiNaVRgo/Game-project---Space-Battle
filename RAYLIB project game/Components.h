@@ -6,6 +6,7 @@
 #include "utils.h"
 #include "spatialHash/grid.h"
 #include "GeometryCalc.h"
+#include "Coroutines.h"
 #include <random>
 #include <vector>
 #include <any>
@@ -381,8 +382,10 @@ struct CollisionSystem : public ECS::System {
 						health2.health = 0.0f;
 					}
 
-					if ((entitySpecific1.id == ENTITY_ID::ENEMY_ID && entitySpecific1.id == ENTITY_ID::ENEMY_ID) || (entitySpecific1.id == ENTITY_ID::PLAYER_ID && entitySpecific1.id == ENTITY_ID::ENEMY_ID)) {
+					if (entitySpecific1.id == ENTITY_ID::ENEMY_ID && entitySpecific2.id == ENTITY_ID::ENEMY_ID) {
 						//handling collison here bruh
+						raylib::AABBcollisionResponse(rigidBody1.velocity, rigidBody2.velocity, rigidBody1.hitbox.hitboxRect, rigidBody2.hitbox.hitboxRect);
+
 					}
 				}
 			}
@@ -484,8 +487,7 @@ struct BulletManipulationSystem : ECS::System {
 			auto& sprite = GLOBALS::gCoordinator.GetComponent<Sprite>(entity);
 			auto& bullet = GLOBALS::gCoordinator.GetComponent<Bullet>(entity);
 			
-
-			movmentAI.sinwaveMovment(200.0f, sprite.angle, 1000, 30, rigidBody.velocity);
+			movmentAI.sinwaveMovment(200.0f, sprite.angle, 100, 10, rigidBody.velocity);
 
 			if (!raylib::containsRect(GLOBALS::gridRect, rigidBody.hitbox.hitboxRect)) {
 				health.health = 0.0f;
@@ -500,7 +502,6 @@ struct EntityRemovalSystem : ECS::System {
 			auto& rigidBody = GLOBALS::gCoordinator.GetComponent<RigidBody>(entity);
 			auto& sprite = GLOBALS::gCoordinator.GetComponent<Sprite>(entity);
 
-			spatial_hash::gGird.remove(entity, rigidBody.hitbox.hitboxRect.GetPosition());
 			sprite.sprite.Unload();
 			GLOBALS::gCoordinator.DestroyEntity(entity);
 		}

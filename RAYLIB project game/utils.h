@@ -1,6 +1,7 @@
 #pragma once
 #include <src\raylib-cpp.hpp>
 #include <string>
+#include <numeric>
 
 namespace raylib {
 	template<typename T>
@@ -108,5 +109,91 @@ namespace raylib {
                 GLOBALS::camera.zoom = Clamp(GLOBALS::camera.zoom * scaleFactor, 0.125f, 64.0f);
             }
         }
+    }
+    //doesn work oh my god
+    static inline void AABBcollisionResponse(raylib::Vector2& vel1, raylib::Vector2& vel2, const raylib::Rectangle& b1, const raylib::Rectangle& b2) {
+        raylib::Vector2 normal;
+        
+        float xInvEntry, yInvEntry;
+        float xInvExit, yInvExit;
+
+        // find the distance between the objects on the near and far sides for both x and y 
+        if (vel1.x > 0.0f)
+        {
+            xInvEntry = b2.x - (b1.x + b1.width);
+            xInvExit = (b2.x + b2.width) - b1.x;
+        }
+        else
+        {
+            xInvEntry = (b2.x + b2.width) - b1.x;
+            xInvExit = b2.x - (b1.x + b1.width);
+        }
+
+        if (vel1.y > 0.0f)
+        {
+            yInvEntry = b2.y - (b1.y + b1.height);
+            yInvExit = (b2.y + b2.height) - b1.y;
+        }
+        else
+        {
+            yInvEntry = (b2.y + b2.height) - b1.y;
+            yInvExit = b2.y - (b1.y + b1.height);
+        }
+        
+        float xEntry, yEntry;
+        float xExit, yExit;
+
+        if (vel1.x == 0.0f)
+        {
+            xEntry = -std::numeric_limits<float>::infinity();
+            xExit = std::numeric_limits<float>::infinity();
+        }
+        else
+        {
+            xEntry = xInvEntry / vel1.x;
+            xExit = xInvExit / vel1.y;
+        }
+
+        if (vel1.y == 0.0f)
+        {
+            yEntry = -std::numeric_limits<float>::infinity();
+            yExit = std::numeric_limits<float>::infinity();
+        }
+        else
+        {
+            yEntry = yInvEntry / vel1.x;
+            yExit = yInvExit / vel1.y;
+        }
+
+        if (xEntry > yEntry)
+        {
+            if (xInvEntry < 0.0f)
+            {
+                normal.x = 1.0f;
+                normal.y = 0.0f;
+            }
+            else
+            {
+                normal.x = -1.0f;
+                normal.y = 0.0f;
+            }
+        }
+        else
+        {
+            if (yInvEntry < 0.0f)
+            {
+                normal.x = 0.0f;
+                normal.y = 1.0f;
+            }
+            else
+            {
+                normal.x = 0.0f;
+                normal.y = -1.0f;
+            }
+        }
+
+        raylib::Vector2 vj = -Vector2DotProduct(vel1, normal);
+        vel1.x += vj.x * normal.x;
+        vel1.y += -vj.y * normal.y;
     }
 }
