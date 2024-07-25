@@ -22,7 +22,7 @@ class ComponentCommons {
 public:
 	template<typename Component, typename... Types>
 	static inline void addComponent(ECS::Entity entity, Types... args) {
-		GLOBALS::gCoordinator.AddComponent<Component>(entity, Component(args...));
+		G::gCoordinator.AddComponent<Component>(entity, Component(args...));
 	}
 };
 
@@ -78,8 +78,8 @@ struct Health {
 	bool toBeDamaged;//6
 
 	void drawHealthBar(const raylib::Vector2& origin, const raylib::Vector2& offsetFromOrigin) {
-		raylib::Rectangle r1 = { origin + offsetFromOrigin - raylib::Vector2(maxHealth / 2.0f, 0), raylib::Vector2(maxHealth, 20) };
-		raylib::Rectangle r2 = { origin + offsetFromOrigin - raylib::Vector2(maxHealth / 2.0f, 0), raylib::Vector2(health, 20) - raylib::Vector2(1, 1)};
+		raylib::Rectangle r1 = { origin + offsetFromOrigin - raylib::Vector2(maxHealth / 2.0f, 0), raylib::Vector2(maxHealth, 4) };
+		raylib::Rectangle r2 = { origin + offsetFromOrigin - raylib::Vector2(maxHealth / 2.0f, 0), raylib::Vector2(health, 4) - raylib::Vector2(1, 1)};
 		r2.Draw(BLUE);
 		r1.DrawLines(BLACK);
 	}
@@ -169,12 +169,16 @@ struct MovmentAI {
 	}
 };
 
+struct UpgradeSystem {
+
+};
+
 struct PhysicsSystem : public ECS::System {
 public:
 	void update(float dt) {
 		for (auto const& entity : mEntities) {
-			auto& rigidBody = GLOBALS::gCoordinator.GetComponent<RigidBody>(entity);
-			auto& transform = GLOBALS::gCoordinator.GetComponent<Transforms>(entity);
+			auto& rigidBody = G::gCoordinator.GetComponent<RigidBody>(entity);
+			auto& transform = G::gCoordinator.GetComponent<Transforms>(entity);
 
 			
 			transform.position += rigidBody.velocity * dt;
@@ -187,9 +191,9 @@ struct RenderSystem : public ECS::System {
 public:
 	void updateSprites() {
 		for (auto const& entity : mEntities) {
-			auto& transform = GLOBALS::gCoordinator.GetComponent<Transforms>(entity);
-			auto& sprite = GLOBALS::gCoordinator.GetComponent<Sprite>(entity);
-			auto& rigidBody = GLOBALS::gCoordinator.GetComponent<RigidBody>(entity);
+			auto& transform = G::gCoordinator.GetComponent<Transforms>(entity);
+			auto& sprite = G::gCoordinator.GetComponent<Sprite>(entity);
+			auto& rigidBody = G::gCoordinator.GetComponent<RigidBody>(entity);
 
 			rigidBody.hitbox.hitboxRect.SetX(transform.position.x - 0.5f * (rigidBody.hitbox.hitboxRect.GetWidth()));
 			rigidBody.hitbox.hitboxRect.SetY(transform.position.y - 0.5f * (rigidBody.hitbox.hitboxRect.GetHeight()));
@@ -202,12 +206,12 @@ public:
 				sprite.tint
 			);
 
-			if(GLOBALS::debugMode) {
+			if(G::debugMode) {
 				rigidBody.hitbox.hitboxRect.DrawLines(rigidBody.hitbox.hitboxColor);
 			}
 			//raylib::DrawText(std::to_string(entity), transform.position.x, transform.position.y, 12, raylib::Color::Black());
 
-			GLOBALS::gridRect.DrawLines(raylib::Color::Blue());
+			G::gridRect.DrawLines(raylib::Color::Blue());
 		}
 	}
 };
@@ -216,30 +220,30 @@ struct InputSystem : public ECS::System {
 public:
 	void update() {
 		for (auto const& entity : mEntities) {
-			auto& transform = GLOBALS::gCoordinator.GetComponent<Transforms>(entity);
-			auto& rigidBody = GLOBALS::gCoordinator.GetComponent<RigidBody>(entity);
-			auto& sprite = GLOBALS::gCoordinator.GetComponent<Sprite>(entity);
-			auto& pSpecific = GLOBALS::gCoordinator.GetComponent<PlayerSpecific>(entity);
+			auto& transform = G::gCoordinator.GetComponent<Transforms>(entity);
+			auto& rigidBody = G::gCoordinator.GetComponent<RigidBody>(entity);
+			auto& sprite = G::gCoordinator.GetComponent<Sprite>(entity);
+			auto& pSpecific = G::gCoordinator.GetComponent<PlayerSpecific>(entity);
 
-			GLOBALS::playerBoundingBoxForBullets = { GLOBALS::gPlayerPos.x - GLOBALS::screenWidth * 0.5f, GLOBALS::gPlayerPos.y - GLOBALS::screenHeight * 0.5f, GLOBALS::screen.width, GLOBALS::screen.height };
+			G::playerBoundingBoxForBullets = { G::gPlayerPos.x - G::screenWidth * 0.5f, G::gPlayerPos.y - G::screenHeight * 0.5f, G::screen.width, G::screen.height };
 
-			GLOBALS::playerBoundingBoxForBullets.DrawLines(RED);
+			G::playerBoundingBoxForBullets.DrawLines(RED);
 
 			static float minSpeed = 30;
 			static float minEffectLength = 10;
 			static float fractionSpeed = 0.8f;
 
-			GLOBALS::camera.offset = Vector2(GLOBALS::screenWidth / 2.0f, GLOBALS::screenHeight / 2.0f);
-			Vector2 diff = Vector2Subtract(transform.position, GLOBALS::camera.target);
+			G::camera.offset = Vector2(G::screenWidth / 2.0f, G::screenHeight / 2.0f);
+			Vector2 diff = Vector2Subtract(transform.position, G::camera.target);
 			float length = Vector2Length(diff);
 
 			if (length > minEffectLength) {
 				float speed = fmaxf(fractionSpeed * length, minSpeed);
-				GLOBALS::camera.target = Vector2Add(GLOBALS::camera.target, Vector2Scale(diff, speed * GetFrameTime() / length));
+				G::camera.target = Vector2Add(G::camera.target, Vector2Scale(diff, speed * GetFrameTime() / length));
 			}
 
 
-			GLOBALS::gPlayerPos = transform.position;
+			G::gPlayerPos = transform.position;
 
 			if (IsKeyPressed(KeyboardKey::KEY_SPACE) && pSpecific.dash <= 1.0f) {
 				pSpecific.dash = 5.0f;
@@ -250,7 +254,7 @@ public:
 			}
 
 			if (raylib::IsKeyOrMouseDown(KeyInputs::FLY)) {
-				auto m_v = GetScreenToWorld2D(GetMousePosition(), GLOBALS::camera);
+				auto m_v = GetScreenToWorld2D(GetMousePosition(), G::camera);
 				auto v = raylib::Vector2((m_v.x - transform.position.x) / Vector2Distance(transform.position, m_v),
 										 (m_v.y - transform.position.y) / Vector2Distance(transform.position, m_v));
 				sprite.angle = atan2f(v.x, -v.y);
@@ -259,34 +263,34 @@ public:
 			}
 
 			if (IsKeyPressed(KeyboardKey::KEY_H)) {
-				if (!GLOBALS::debugMode) { GLOBALS::debugMode = true; }
-				else { GLOBALS::debugMode = false; }
+				if (!G::debugMode) { G::debugMode = true; }
+				else { G::debugMode = false; }
 			}
 
-			GLOBALS::gTimer.insertTimer(1, Timer(400, TIMER_ID::WAITTIMER_ID));
+			G::gTimer.insertTimer(1, Timer(400, TIMER_ID::WAITTIMER_ID));
 
-			if (raylib::IsKeyOrMouseDown(KeyInputs::SHOOT) && GLOBALS::gTimer.checkTimer(1)) {
-				GLOBALS::gTimer.resetTimer(1);
-				ECS::Entity entity1 = GLOBALS::gCoordinator.CreateEntity();
-				GLOBALS::gCoordinator.AddComponent<Transforms>(entity1, Transforms{
+			if (raylib::IsKeyOrMouseDown(KeyInputs::SHOOT) && G::gTimer.checkTimer(1)) {
+				G::gTimer.resetTimer(1);
+				ECS::Entity entity1 = G::gCoordinator.CreateEntity();
+				G::gCoordinator.AddComponent<Transforms>(entity1, Transforms{
 					.position = transform.position,
 					.rotation = raylib::Vector2(0.0f, 0.0f),
 					.scale = raylib::Vector2(1.0f, 1.0f)
 					});
-				GLOBALS::gCoordinator.AddComponent<RigidBody>(entity1, RigidBody{
+				G::gCoordinator.AddComponent<RigidBody>(entity1, RigidBody{
 					.velocity = raylib::Vector2(3.0f * rigidBody.velocity.x / pSpecific.dash, 3.0f * rigidBody.velocity.y / pSpecific.dash),
 					.acceleration = raylib::Vector2(0.0f, 0.0f),
 					.hitbox = {{0.0f, 0.0f, 18.0f, 18.0f}, raylib::Color::Green()},
 					.isColliding = false,
 					.onWhatSideIsColliding = {false ,false ,false ,false }
 					});
-				GLOBALS::gCoordinator.AddComponent<Sprite>(entity1, Sprite{
-					.sprite = raylib::Texture2DUnmanaged("resources/PlayerBulletModel.png"),
+				G::gCoordinator.AddComponent<Sprite>(entity1, Sprite{
+					.sprite = G::playerBulletTexture,
 					.angle = sprite.angle,
 					.tint = {255, 255, 255, 255},
 					.origin = raylib::Vector2(raylib::Texture2D("resources/PlayerBulletModel.png").width * 0.5f, raylib::Texture2D("resources/PlayerBulletModel.png").height * 0.5f)
 					});
-				GLOBALS::gCoordinator.AddComponent<Health>(entity1, Health{
+				G::gCoordinator.AddComponent<Health>(entity1, Health{
 					.maxHealth = 5.0f,
 					.health = 5.0f,
 					.isDamaged = false,
@@ -294,16 +298,16 @@ public:
 					.healthToSubstract = 0.0f,
 					.toBeDamaged = false
 					});
-				GLOBALS::gCoordinator.AddComponent<Bullet>(entity1, Bullet{
+				G::gCoordinator.AddComponent<Bullet>(entity1, Bullet{
 					});
-				GLOBALS::gCoordinator.AddComponent<EntitySpecific>(entity1, EntitySpecific{
+				G::gCoordinator.AddComponent<EntitySpecific>(entity1, EntitySpecific{
 					.id = ENTITY_ID::PLAYER_BULLET_ID
 					});
-				GLOBALS::gCoordinator.AddComponent<TimerComponent>(entity1, TimerComponent{});
+				G::gCoordinator.AddComponent<TimerComponent>(entity1, TimerComponent{});
 				ComponentCommons::addComponent<Damage>(entity1, 5, 5);
 				ComponentCommons::addComponent<MovmentAI>(entity1);
 
-				auto& t = GLOBALS::gCoordinator.GetComponent<RigidBody>(entity1);
+				auto& t = G::gCoordinator.GetComponent<RigidBody>(entity1);
 				spatial_hash::gGird.insert(entity1, t.hitbox.hitboxRect);
 			}
 		}
@@ -313,11 +317,11 @@ public:
 struct HealthSystem : public ECS::System {
 	void update() {
 		for (auto const& entity : mEntities) {
-			auto& _health = GLOBALS::gCoordinator.GetComponent<Health>(entity);
-			auto& sprite = GLOBALS::gCoordinator.GetComponent<Sprite>(entity);
-			auto& rigidBody = GLOBALS::gCoordinator.GetComponent<RigidBody>(entity);
-			auto& timerComponent = GLOBALS::gCoordinator.GetComponent<TimerComponent>(entity);
-			auto& entitySpecific = GLOBALS::gCoordinator.GetComponent<EntitySpecific>(entity);
+			auto& _health = G::gCoordinator.GetComponent<Health>(entity);
+			auto& sprite = G::gCoordinator.GetComponent<Sprite>(entity);
+			auto& rigidBody = G::gCoordinator.GetComponent<RigidBody>(entity);
+			auto& timerComponent = G::gCoordinator.GetComponent<TimerComponent>(entity);
+			auto& entitySpecific = G::gCoordinator.GetComponent<EntitySpecific>(entity);
 
 			_health.drawHealthBar(rigidBody.hitbox.getHitBoxCenter(), raylib::Vector2(0, sprite.sprite.height / 2.0f + 2));
 
@@ -340,9 +344,9 @@ struct HealthSystem : public ECS::System {
 
 			if (_health.health <= 0.0f) {
 				if (entitySpecific.id == ENTITY_ID::ENEMY_ID) {
-					GLOBALS::gEnemyCounter--;
+					G::gEnemyCounter--;
 				}
-				GLOBALS::gEntitySetToBeDestroyed.insert(entity);
+				G::gEntitySetToBeDestroyed.insert(entity);
 			}
 		}
 	}
@@ -354,16 +358,18 @@ struct CollisionSystem : public ECS::System {
 	//Health
 	void update() {
 		for (auto const& entity1 : mEntities) {
-			auto& health1 = GLOBALS::gCoordinator.GetComponent<Health>(entity1);
-			auto& rigidBody1 = GLOBALS::gCoordinator.GetComponent<RigidBody>(entity1);
-			auto& entitySpecific1 = GLOBALS::gCoordinator.GetComponent<EntitySpecific>(entity1);
-			auto& damage1 = GLOBALS::gCoordinator.GetComponent<Damage>(entity1);
+			auto& transform1 = G::gCoordinator.GetComponent<Transforms>(entity1);
+			auto& health1 = G::gCoordinator.GetComponent<Health>(entity1);
+			auto& rigidBody1 = G::gCoordinator.GetComponent<RigidBody>(entity1);
+			auto& entitySpecific1 = G::gCoordinator.GetComponent<EntitySpecific>(entity1);
+			auto& damage1 = G::gCoordinator.GetComponent<Damage>(entity1);
 
 			for (auto const& entity2 : spatial_hash::gGird.query(rigidBody1.hitbox.hitboxRect)) {
-				auto& health2 = GLOBALS::gCoordinator.GetComponent<Health>(entity2);
-				auto& rigidBody2 = GLOBALS::gCoordinator.GetComponent<RigidBody>(entity2);
-				auto& entitySpecific2 = GLOBALS::gCoordinator.GetComponent<EntitySpecific>(entity2);
-				auto& damage2 = GLOBALS::gCoordinator.GetComponent<Damage>(entity2);
+				auto& transform2 = G::gCoordinator.GetComponent<Transforms>(entity2);
+				auto& health2 = G::gCoordinator.GetComponent<Health>(entity2);
+				auto& rigidBody2 = G::gCoordinator.GetComponent<RigidBody>(entity2);
+				auto& entitySpecific2 = G::gCoordinator.GetComponent<EntitySpecific>(entity2);
+				auto& damage2 = G::gCoordinator.GetComponent<Damage>(entity2);
 				
 				if (entity1 != entity2 && rigidBody2.hitbox.hitboxRect.CheckCollision(rigidBody1.hitbox.hitboxRect)) {
 					if (entitySpecific1.id == ENTITY_ID::ENEMY_ID && entitySpecific2.id == ENTITY_ID::PLAYER_ID) {
@@ -384,7 +390,7 @@ struct CollisionSystem : public ECS::System {
 
 					if (entitySpecific1.id == ENTITY_ID::ENEMY_ID && entitySpecific2.id == ENTITY_ID::ENEMY_ID) {
 						//handling collison here bruh
-						raylib::AABBcollisionResponse(rigidBody1.velocity, rigidBody2.velocity, rigidBody1.hitbox.hitboxRect, rigidBody2.hitbox.hitboxRect);
+						raylib::AABBcollisionResponse(transform1.position, transform2.position, rigidBody1.hitbox.hitboxRect, rigidBody2.hitbox.hitboxRect);
 
 					}
 				}
@@ -396,47 +402,47 @@ struct CollisionSystem : public ECS::System {
 struct EnemySpawningSystem : public ECS::System{
 	void update() {
 		for (auto const& entity : mEntities) {
-			auto& transform = GLOBALS::gCoordinator.GetComponent<Transforms>(entity);
-			auto& pSpecific = GLOBALS::gCoordinator.GetComponent<PlayerSpecific>(entity);
+			auto& transform = G::gCoordinator.GetComponent<Transforms>(entity);
+			auto& pSpecific = G::gCoordinator.GetComponent<PlayerSpecific>(entity);
 			
-			if (GLOBALS::gEnemyCounter == 0) {
-				GLOBALS::gLevel++;
-				GLOBALS::gEnemyCounter = GLOBALS::gLevel;
+			if (G::gEnemyCounter == 0) {
+				G::gLevel++;
+				G::gEnemyCounter = G::gLevel;
 			
 				std::random_device rd;
 				std::mt19937 gen(rd());
 
-				raylib::Vector2 vP = GLOBALS::gPlayerPos;
+				raylib::Vector2 vP = G::gPlayerPos;
 				std::uniform_int_distribution distribX(static_cast<int>(vP.x) - 100, static_cast<int>(vP.x) + 100);
 				std::uniform_int_distribution distribY(static_cast<int>(vP.y) - 100, static_cast<int>(vP.y) + 100);
 
-				for (int i = 0; i < GLOBALS::gEnemyCounter; i++) {
+				for (int i = 0; i < G::gEnemyCounter; i++) {
 					Vector2 v = { distribX(gen), distribY(gen) };
 
- 					while (Vector2Distance(vP, v) < 70 || !GLOBALS::gridRect.CheckCollision(v)) {
+ 					while (Vector2Distance(vP, v) < 70 || !G::gridRect.CheckCollision(v)) {
 						v = { (float)distribX(gen), (float)distribY(gen) };
 					}
 
-					ECS::Entity entity1 = GLOBALS::gCoordinator.CreateEntity();
-					GLOBALS::gCoordinator.AddComponent<Transforms>(entity1, Transforms{
+					ECS::Entity entity1 = G::gCoordinator.CreateEntity();
+					G::gCoordinator.AddComponent<Transforms>(entity1, Transforms{
 						.position = raylib::Vector2(v),
 						.rotation = raylib::Vector2(0.0f, 0.0f),
 						.scale = raylib::Vector2(1.0f, 1.0f)
 						});
-					GLOBALS::gCoordinator.AddComponent<RigidBody>(entity1, RigidBody{
+					G::gCoordinator.AddComponent<RigidBody>(entity1, RigidBody{
 						.velocity = raylib::Vector2(0.0f, 0.0f),
 						.acceleration = raylib::Vector2(0.0f, 0.0f),
 						.hitbox = {{0.0f, 0.0f, 18.0f, 18.0f}, raylib::Color::Red()},
 						.isColliding = false,
 						.onWhatSideIsColliding = {false ,false ,false ,false }
 						});
-					GLOBALS::gCoordinator.AddComponent<Sprite>(entity1, Sprite{
-						.sprite = raylib::Texture2DUnmanaged("resources/EnemyModel.png"),
+					G::gCoordinator.AddComponent<Sprite>(entity1, Sprite{
+						.sprite = G::enemyTexture,
 						.angle = 0.0f,
 						.tint = {255, 255, 255, 255},
 						.origin = raylib::Vector2(raylib::Texture2D("resources/EnemyModel.png").width * 0.5f, raylib::Texture2D("resources/EnemyModel.png").height * 0.5f)
 						});
-					GLOBALS::gCoordinator.AddComponent<Health>(entity1, Health{
+					G::gCoordinator.AddComponent<Health>(entity1, Health{
 						.maxHealth = 30.0f,
 						.health = 30.0f,
 						.isDamaged = false,
@@ -444,19 +450,19 @@ struct EnemySpawningSystem : public ECS::System{
 						.healthToSubstract = 0.0f,
 						.toBeDamaged = false
 						});
-					GLOBALS::gCoordinator.AddComponent<Enemy>(entity1, Enemy{
+					G::gCoordinator.AddComponent<Enemy>(entity1, Enemy{
 
 						});
-					GLOBALS::gCoordinator.AddComponent<MovmentAI>(entity1, MovmentAI{
+					G::gCoordinator.AddComponent<MovmentAI>(entity1, MovmentAI{
 
 						});
-					GLOBALS::gCoordinator.AddComponent<EntitySpecific>(entity1, EntitySpecific{
+					G::gCoordinator.AddComponent<EntitySpecific>(entity1, EntitySpecific{
 					.id = ENTITY_ID::ENEMY_ID
 						});
-					GLOBALS::gCoordinator.AddComponent<TimerComponent>(entity1, TimerComponent{});
+					G::gCoordinator.AddComponent<TimerComponent>(entity1, TimerComponent{});
 					ComponentCommons::addComponent<Damage>(entity1, 5, 5);
 
-					auto& t = GLOBALS::gCoordinator.GetComponent<RigidBody>(entity1);
+					auto& t = G::gCoordinator.GetComponent<RigidBody>(entity1);
 					spatial_hash::gGird.insert(entity1, t.hitbox.hitboxRect);
 				}
 			}
@@ -467,13 +473,13 @@ struct EnemySpawningSystem : public ECS::System{
 struct EnemyAIMovmentSystem : ECS::System {
 	void update() {
 		for (auto const& entity : mEntities) {
-			auto& transform = GLOBALS::gCoordinator.GetComponent<Transforms>(entity);
-			auto& rigidBody = GLOBALS::gCoordinator.GetComponent<RigidBody>(entity);
-			auto& sprite = GLOBALS::gCoordinator.GetComponent<Sprite>(entity);
-			auto& movmentAI = GLOBALS::gCoordinator.GetComponent<MovmentAI>(entity);
+			auto& transform = G::gCoordinator.GetComponent<Transforms>(entity);
+			auto& rigidBody = G::gCoordinator.GetComponent<RigidBody>(entity);
+			auto& sprite = G::gCoordinator.GetComponent<Sprite>(entity);
+			auto& movmentAI = G::gCoordinator.GetComponent<MovmentAI>(entity);
 			//auto& enemy = GLOBALS::gCoordinator.GetComponent<Enemy>(entity);
 			
-			movmentAI.chase(transform.position, GLOBALS::gPlayerPos, rigidBody.velocity, sprite.angle, 50.0f, 500.0f);
+			movmentAI.chase(transform.position, G::gPlayerPos, rigidBody.velocity, sprite.angle, 50.0f, 500.0f);
 		}
 	}
 };
@@ -481,15 +487,15 @@ struct EnemyAIMovmentSystem : ECS::System {
 struct BulletManipulationSystem : ECS::System {
 	void update() {
 		for (auto const& entity : mEntities) {
-			auto& rigidBody = GLOBALS::gCoordinator.GetComponent<RigidBody>(entity);
-			auto& health = GLOBALS::gCoordinator.GetComponent<Health>(entity);
-			auto& movmentAI = GLOBALS::gCoordinator.GetComponent<MovmentAI>(entity);
-			auto& sprite = GLOBALS::gCoordinator.GetComponent<Sprite>(entity);
-			auto& bullet = GLOBALS::gCoordinator.GetComponent<Bullet>(entity);
+			auto& rigidBody = G::gCoordinator.GetComponent<RigidBody>(entity);
+			auto& health = G::gCoordinator.GetComponent<Health>(entity);
+			auto& movmentAI = G::gCoordinator.GetComponent<MovmentAI>(entity);
+			auto& sprite = G::gCoordinator.GetComponent<Sprite>(entity);
+			auto& bullet = G::gCoordinator.GetComponent<Bullet>(entity);
 			
 			movmentAI.sinwaveMovment(200.0f, sprite.angle, 100, 10, rigidBody.velocity);
 
-			if (!raylib::containsRect(GLOBALS::gridRect, rigidBody.hitbox.hitboxRect)) {
+			if (!raylib::containsRect(G::gridRect, rigidBody.hitbox.hitboxRect)) {
 				health.health = 0.0f;
 			}
 		}
@@ -498,20 +504,19 @@ struct BulletManipulationSystem : ECS::System {
 
 struct EntityRemovalSystem : ECS::System {
 	void update() {
-		for (auto const& entity : GLOBALS::gEntitySetToBeDestroyed) {
-			auto& rigidBody = GLOBALS::gCoordinator.GetComponent<RigidBody>(entity);
-			auto& sprite = GLOBALS::gCoordinator.GetComponent<Sprite>(entity);
+		for (auto const& entity : G::gEntitySetToBeDestroyed) {
+			auto& rigidBody = G::gCoordinator.GetComponent<RigidBody>(entity);
+			auto& sprite = G::gCoordinator.GetComponent<Sprite>(entity);
 
-			sprite.sprite.Unload();
-			GLOBALS::gCoordinator.DestroyEntity(entity);
+			//sprite.sprite.Unload();
+			G::gCoordinator.DestroyEntity(entity);
 		}
 
-		GLOBALS::gEntitySetToBeDestroyed.clear();
-
+		G::gEntitySetToBeDestroyed.clear();
 		spatial_hash::gGird.clearAllTiles();
 
 		for (auto const& entity : mEntities) {
-			auto& rigidBody = GLOBALS::gCoordinator.GetComponent<RigidBody>(entity);
+			auto& rigidBody = G::gCoordinator.GetComponent<RigidBody>(entity);
 			spatial_hash::gGird.insert(entity, rigidBody.hitbox.hitboxRect);
 		}
 	}
