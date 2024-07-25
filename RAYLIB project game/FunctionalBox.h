@@ -18,7 +18,7 @@ public:
 
 	bool update() {
         text.Draw(rect.GetPosition());
-		if (rect.CheckCollision(GetScreenToWorld2D(GetMousePosition(), GLOBALS::camera))) {
+		if (rect.CheckCollision(GetScreenToWorld2D(GetMousePosition(), G::camera))) {
             rect.DrawLines(colRect);
 			return true;
 		}

@@ -8,37 +8,39 @@
 #include "utils.h"
 
 void Functions::PlayGame() {
-    GLOBALS::window.ClearBackground(raylib::Color::DarkGray());
+    G::window.ClearBackground(raylib::Color::DarkGray());
     rlPushMatrix();
         rlTranslatef(0, 25 * 50, 0);
         rlRotatef(90, 1, 0, 0);
     rlPopMatrix();
 
-    if (GLOBALS::debugMode) {
+    //GLOBALS::gBloom.BeginMode();
+    if (G::debugMode) {
         spatial_hash::gGird.drawGrid();
         spatial_hash::gGird.drawPopulatedTiles();
     }
 
-    std::any_cast<std::shared_ptr<RenderSystem>>(GLOBALS::renderSystem)->updateSprites();
-    std::any_cast<std::shared_ptr<PhysicsSystem>>(GLOBALS::physicsSystem)->update(GetFrameTime());
-    std::any_cast<std::shared_ptr<InputSystem>>(GLOBALS::inputSystem)->update();
-    std::any_cast<std::shared_ptr<EnemySpawningSystem>>(GLOBALS::enemySpawningSystem)->update();
-    std::any_cast<std::shared_ptr<EnemyAIMovmentSystem>>(GLOBALS::enemyAIMovmentSystem)->update();
-    std::any_cast<std::shared_ptr<CollisionSystem>>(GLOBALS::collisionSystem)->update();
-    std::any_cast<std::shared_ptr<BulletManipulationSystem>>(GLOBALS::bulletRemovalSystem)->update();
-    std::any_cast<std::shared_ptr<HealthSystem>>(GLOBALS::healthSystem)->update();
-    std::any_cast<std::shared_ptr<EntityRemovalSystem>>(GLOBALS::entityRemovalSystem)->update();
+    std::any_cast<std::shared_ptr<RenderSystem>>(G::renderSystem)->updateSprites();
+    std::any_cast<std::shared_ptr<PhysicsSystem>>(G::physicsSystem)->update(GetFrameTime());
+    std::any_cast<std::shared_ptr<InputSystem>>(G::inputSystem)->update();
+    std::any_cast<std::shared_ptr<EnemySpawningSystem>>(G::enemySpawningSystem)->update();
+    std::any_cast<std::shared_ptr<EnemyAIMovmentSystem>>(G::enemyAIMovmentSystem)->update();
+    std::any_cast<std::shared_ptr<CollisionSystem>>(G::collisionSystem)->update();
+    std::any_cast<std::shared_ptr<BulletManipulationSystem>>(G::bulletManipulationSystem)->update();  
+    std::any_cast<std::shared_ptr<HealthSystem>>(G::healthSystem)->update();
+    std::any_cast<std::shared_ptr<EntityRemovalSystem>>(G::entityRemovalSystem)->update();
+    //GLOBALS::gBloom.EndMode();
 
     if (IsKeyPressed(KeyboardKey::KEY_BACKSPACE)) {
-        GLOBALS::camera.target = { 0.0f, 0.0f };
-        GLOBALS::camera.zoom = 1.0f;
-        GLOBALS::camera.offset = { 0.0f, 0.0f };
-        GLOBALS::gStack.pushToTop(ID_MAIN_MENU);
+        G::camera.target = { 0.0f, 0.0f };
+        G::camera.zoom = 1.0f;
+        G::camera.offset = { 0.0f, 0.0f };
+        G::gStack.pushToTop(ID_MAIN_MENU);
     }
 }
 
 void Functions::MainMenu() {
-    GLOBALS::window.ClearBackground(raylib::Color::DarkGray());
+    G::window.ClearBackground(raylib::Color::DarkGray());
     FunctionalBox fPlayGame(
         {100.0f, 100.0f},
         RED,
@@ -56,18 +58,18 @@ void Functions::MainMenu() {
         );
 
     if (fPlayGame.update() && IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_LEFT)) {
-        GLOBALS::gStack.pushToTop(FUNC_ID::ID_PLAY_GAME);
+        G::gStack.pushToTop(FUNC_ID::ID_PLAY_GAME);
     }
     if (fSettings.update() && IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_LEFT)) {
-        GLOBALS::gStack.pushToTop(FUNC_ID::ID_SETTINGS);
+        G::gStack.pushToTop(FUNC_ID::ID_SETTINGS);
     }
     if (fExit.update() && IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_LEFT)) {
-        GLOBALS::gStack.pushToTop(FUNC_ID::ID_EXIT);
+        G::gStack.pushToTop(FUNC_ID::ID_EXIT);
     }
 }
 
 void Functions::Settings() {
-    GLOBALS::window.ClearBackground(raylib::Color::DarkGray());
+    G::window.ClearBackground(raylib::Color::DarkGray());
     FunctionalBox fKB(
         { 100.0f, 100.0f },
         RED,
@@ -80,22 +82,22 @@ void Functions::Settings() {
         );
 
     if (fKB.update() && IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_LEFT)) {
-        GLOBALS::gStack.pushToTop(FUNC_ID::ID_SETTINGS_KEYBOARD);
+        G::gStack.pushToTop(FUNC_ID::ID_SETTINGS_KEYBOARD);
     }
 
 
     if (fSD.update() && IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_LEFT)) {
-        GLOBALS::gStack.pushToTop(FUNC_ID::ID_SETTINGS_SOUND);
+        G::gStack.pushToTop(FUNC_ID::ID_SETTINGS_SOUND);
     }
   
 
     if (IsKeyPressed(KeyboardKey::KEY_BACKSPACE)) {
-        GLOBALS::gStack.pushToTop(FUNC_ID::ID_MAIN_MENU);
+        G::gStack.pushToTop(FUNC_ID::ID_MAIN_MENU);
     }
 }
 
 void Functions::Exit() {
-    GLOBALS::window.ClearBackground(raylib::Color::DarkGray());
+    G::window.ClearBackground(raylib::Color::DarkGray());
     FunctionalBox f1(
         { 100.0f, 100.0f },
         RED,
@@ -106,17 +108,17 @@ void Functions::Exit() {
         raylib::Text("Press backspace to comeback", 20, YELLOW, GetFontDefault(), 1.0f));
 
     if (f1.update() && IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_LEFT)) {
-        GLOBALS::exitWindow = true;
+        G::exitWindow = true;
     }
     f2.update();
 
     if (IsKeyPressed(KeyboardKey::KEY_BACKSPACE)) {
-        GLOBALS::gStack.pushToTop(FUNC_ID::ID_MAIN_MENU);
+        G::gStack.pushToTop(FUNC_ID::ID_MAIN_MENU);
     }
 }
 
 void Functions::SettingsKeyBoard() {
-    GLOBALS::window.ClearBackground(raylib::Color::DarkGray());
+    G::window.ClearBackground(raylib::Color::DarkGray());
     FunctionalBox fShoot(
         {20.0f, 10.0f},
         RED,
@@ -136,12 +138,12 @@ void Functions::SettingsKeyBoard() {
     }
 
     if (IsKeyPressed(KeyboardKey::KEY_BACKSPACE)) {
-        GLOBALS::gStack.pushToTop(FUNC_ID::ID_SETTINGS);
+        G::gStack.pushToTop(FUNC_ID::ID_SETTINGS);
     }
 }
 
 void Functions::SettingsSound() {
-    GLOBALS::window.ClearBackground(raylib::Color::DarkGray());
+    G::window.ClearBackground(raylib::Color::DarkGray());
 
     FunctionalBox fSG(
         { 20.0f, 10.0f },
@@ -165,6 +167,6 @@ void Functions::SettingsSound() {
 
 
     if (IsKeyPressed(KeyboardKey::KEY_BACKSPACE)) {
-        GLOBALS::gStack.pushToTop(FUNC_ID::ID_SETTINGS);
+        G::gStack.pushToTop(FUNC_ID::ID_SETTINGS);
     }
 }

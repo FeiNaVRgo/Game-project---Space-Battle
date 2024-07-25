@@ -98,5 +98,8 @@
   <ItemGroup>
     <None Include="resources\shaders\glsl100\pixelizer.glsl" />
     <None Include="packages.config" />
+    <None Include="resources\shaders\glsl100\bloom.glsl" />
+    <None Include="resources\shaders\glsl100\base.glsl" />
+    <None Include="resources\shaders\glsl100\sobel.glsl" />
   </ItemGroup>
 </Project>
