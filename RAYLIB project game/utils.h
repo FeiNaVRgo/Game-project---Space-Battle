@@ -13,7 +13,7 @@ namespace raylib {
 			 s.append(1, char(input));
 			return s;
 		}
-		if (input == 0) { return s = "L_MOUSE"; }
+		     if (input == 0) { return s = "L_MOUSE"; }
 		else if (input == 1) { return s = "R_MOUSE"; }
 		else if (input == 2) { return s = "M_MOUSE"; }
 		else if (input == 3) { return s = "SIDE_MOUSE"; }

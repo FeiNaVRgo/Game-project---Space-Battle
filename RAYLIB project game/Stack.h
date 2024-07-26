@@ -54,3 +54,26 @@ public:
 		std::swap(*it1, mIdvec.front());
 	}
 };
+
+template<typename Kt, typename T>
+struct TreeNode {
+	using TreeNode = TreeNode<Kt, T>;
+
+	Kt key;
+	T myItem;
+
+	std::vector<TreeNode*> children;
+
+	static inline TreeNode* GetNewNode(Kt key, T item) {
+		TreeNode* newNode = new TreeNode();
+		newNode->key = key;
+		newNode->myItem = item;
+
+		return newNode;
+	}
+
+	static inline void addChild(TreeNode* node, Kt key, T item) { 
+		TreeNode* newNode = GetNewNode(key, item);
+		node->children.push_back(newNode);
+	}
+};

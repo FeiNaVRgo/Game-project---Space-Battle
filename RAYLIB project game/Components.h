@@ -303,7 +303,7 @@ public:
 				G::gCoordinator.AddComponent<EntitySpecific>(entity1, EntitySpecific{
 					.id = ENTITY_ID::PLAYER_BULLET_ID
 					});
-				G::gCoordinator.AddComponent<TimerComponent>(entity1, TimerComponent{});
+				ComponentCommons::addComponent<TimerComponent>(entity1);
 				ComponentCommons::addComponent<Damage>(entity1, 5, 5);
 				ComponentCommons::addComponent<MovmentAI>(entity1);
 
