@@ -7,7 +7,7 @@
 #include "FunctionalBox.h"
 #include "utils.h"
 
-void Functions::PlayGame() {
+void StackFunctions::PlayGame() {
     G::window.ClearBackground(raylib::Color::DarkGray());
     rlPushMatrix();
         rlTranslatef(0, 25 * 50, 0);
@@ -19,16 +19,20 @@ void Functions::PlayGame() {
         spatial_hash::gGird.drawGrid();
         spatial_hash::gGird.drawPopulatedTiles();
     }
+   
+    G::gUI.executeById(G::gUI.getKey());
 
-    std::any_cast<std::shared_ptr<RenderSystem>>(G::renderSystem)->updateSprites();
-    std::any_cast<std::shared_ptr<PhysicsSystem>>(G::physicsSystem)->update(GetFrameTime());
-    std::any_cast<std::shared_ptr<InputSystem>>(G::inputSystem)->update();
-    std::any_cast<std::shared_ptr<EnemySpawningSystem>>(G::enemySpawningSystem)->update();
-    std::any_cast<std::shared_ptr<EnemyAIMovmentSystem>>(G::enemyAIMovmentSystem)->update();
-    std::any_cast<std::shared_ptr<CollisionSystem>>(G::collisionSystem)->update();
-    std::any_cast<std::shared_ptr<BulletManipulationSystem>>(G::bulletManipulationSystem)->update();  
-    std::any_cast<std::shared_ptr<HealthSystem>>(G::healthSystem)->update();
-    std::any_cast<std::shared_ptr<EntityRemovalSystem>>(G::entityRemovalSystem)->update();
+    if (G::GameIsPlaying) {
+        std::any_cast<std::shared_ptr<RenderSystem>>(G::renderSystem)->updateSprites();
+        std::any_cast<std::shared_ptr<PhysicsSystem>>(G::physicsSystem)->update(GetFrameTime());
+        std::any_cast<std::shared_ptr<InputSystem>>(G::inputSystem)->update();
+        std::any_cast<std::shared_ptr<EnemySpawningSystem>>(G::enemySpawningSystem)->update();
+        std::any_cast<std::shared_ptr<EnemyAIMovmentSystem>>(G::enemyAIMovmentSystem)->update();
+        std::any_cast<std::shared_ptr<CollisionSystem>>(G::collisionSystem)->update();
+        std::any_cast<std::shared_ptr<BulletManipulationSystem>>(G::bulletManipulationSystem)->update();
+        std::any_cast<std::shared_ptr<HealthSystem>>(G::healthSystem)->update();
+        std::any_cast<std::shared_ptr<EntityRemovalSystem>>(G::entityRemovalSystem)->update();
+    }
     //GLOBALS::gBloom.EndMode();
 
     if (IsKeyPressed(KeyboardKey::KEY_BACKSPACE)) {
@@ -39,7 +43,7 @@ void Functions::PlayGame() {
     }
 }
 
-void Functions::MainMenu() {
+void StackFunctions::MainMenu() {
     G::window.ClearBackground(raylib::Color::DarkGray());
     FunctionalBox fPlayGame(
         {100.0f, 100.0f},
@@ -68,7 +72,7 @@ void Functions::MainMenu() {
     }
 }
 
-void Functions::Settings() {
+void StackFunctions::Settings() {
     G::window.ClearBackground(raylib::Color::DarkGray());
     FunctionalBox fKB(
         { 100.0f, 100.0f },
@@ -96,7 +100,7 @@ void Functions::Settings() {
     }
 }
 
-void Functions::Exit() {
+void StackFunctions::Exit() {
     G::window.ClearBackground(raylib::Color::DarkGray());
     FunctionalBox f1(
         { 100.0f, 100.0f },
@@ -117,7 +121,7 @@ void Functions::Exit() {
     }
 }
 
-void Functions::SettingsKeyBoard() {
+void StackFunctions::SettingsKeyBoard() {
     G::window.ClearBackground(raylib::Color::DarkGray());
     FunctionalBox fShoot(
         {20.0f, 10.0f},
@@ -142,7 +146,7 @@ void Functions::SettingsKeyBoard() {
     }
 }
 
-void Functions::SettingsSound() {
+void StackFunctions::SettingsSound() {
     G::window.ClearBackground(raylib::Color::DarkGray());
 
     FunctionalBox fSG(

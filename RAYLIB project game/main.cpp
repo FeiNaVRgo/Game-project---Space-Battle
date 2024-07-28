@@ -4,6 +4,7 @@
 #include "ECS.h"
 #include "Components.h"
 #include "utils.h"
+#include "UI.h"
 
 #if defined(PLATFORM_DESKTOP)
 #define GLSL_VERSION            330
@@ -23,6 +24,7 @@ int main() {
     // Initialization
     //--------------------------------------------------------------------------------------
     G::gStack.init();
+    G::gUI.init();
     #pragma region GLOBAL_COORDINATOR
     G::gCoordinator.Init();
     
@@ -133,7 +135,7 @@ int main() {
         .sprite = G::playerTexture,
         .angle = 0.0f,
         .tint = {255, 255, 255, 255},
-        .origin = raylib::Vector2(raylib::Texture2D("resources/PlayerModel.png").width * 0.5f, raylib::Texture2D("resources/PlayerModel.png").height * 0.5f)
+        .origin = raylib::Vector2(G::playerTexture.width * 0.5f, G::playerTexture.height * 0.5f)
         });
     G::gCoordinator.AddComponent<PlayerSpecific>(player, PlayerSpecific{
         .dash = 1.0f

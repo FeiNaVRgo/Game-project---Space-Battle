@@ -76,7 +76,7 @@ struct Health {
 	uint16_t frameImmunityTime;//4
 	float healthToSubstract;//5
 	bool toBeDamaged;//6
-
+	
 	void drawHealthBar(const raylib::Vector2& origin, const raylib::Vector2& offsetFromOrigin) {
 		raylib::Rectangle r1 = { origin + offsetFromOrigin - raylib::Vector2(maxHealth / 2.0f, 0), raylib::Vector2(maxHealth, 4) };
 		raylib::Rectangle r2 = { origin + offsetFromOrigin - raylib::Vector2(maxHealth / 2.0f, 0), raylib::Vector2(health, 4) - raylib::Vector2(1, 1)};
@@ -288,7 +288,7 @@ public:
 					.sprite = G::playerBulletTexture,
 					.angle = sprite.angle,
 					.tint = {255, 255, 255, 255},
-					.origin = raylib::Vector2(raylib::Texture2D("resources/PlayerBulletModel.png").width * 0.5f, raylib::Texture2D("resources/PlayerBulletModel.png").height * 0.5f)
+					.origin = raylib::Vector2(G::playerBulletTexture.width * 0.5f, G::playerBulletTexture.height * 0.5f)
 					});
 				G::gCoordinator.AddComponent<Health>(entity1, Health{
 					.maxHealth = 5.0f,
@@ -440,7 +440,7 @@ struct EnemySpawningSystem : public ECS::System{
 						.sprite = G::enemyTexture,
 						.angle = 0.0f,
 						.tint = {255, 255, 255, 255},
-						.origin = raylib::Vector2(raylib::Texture2D("resources/EnemyModel.png").width * 0.5f, raylib::Texture2D("resources/EnemyModel.png").height * 0.5f)
+						.origin = raylib::Vector2(G::enemyTexture.width * 0.5f, G::enemyTexture.height * 0.5f)
 						});
 					G::gCoordinator.AddComponent<Health>(entity1, Health{
 						.maxHealth = 30.0f,

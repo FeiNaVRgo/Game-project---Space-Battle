@@ -138,5 +138,12 @@ namespace raylib {
             }
         }
     }
+
+
+    static inline raylib::Vector2 CenterText(raylib::Text text) {
+        auto dimensions = text.MeasureEx();
+
+        return dimensions * 0.5f;
+    }
 }
 

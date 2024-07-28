@@ -4,6 +4,7 @@
 #include "ECS.h"
 #include "Timer.h"
 #include "Stack.h"
+#include "UI.h"
 #include <unordered_set>
 
 #if defined(PLATFORM_DESKTOP)
@@ -31,8 +32,9 @@ namespace G {
 	inline uint32_t gEnemyCounter = 0;
 	inline uint32_t gLevel = 0;
 	inline raylib::Vector2 gPlayerPos;
-	inline bool GameIsPlaying = false;
+	inline bool GameIsPlaying = true;
 	inline Stack gStack;
+	inline UI gUI;
 	inline std::any physicsSystem;
 	inline std::any renderSystem;
 	inline std::any inputSystem;
