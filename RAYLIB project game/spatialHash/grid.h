@@ -26,6 +26,12 @@ namespace spatial_hash {
 		uint32_t tileCount;
 		uint32_t entityCount;
 		
+
+		/**
+		* @brief turns xyz coordinates into Index coordinates
+		* @param point - normal coordinates
+		* @param tileLengthInv - constant for conversion
+		*/
 		template<typename IndexT>
 		IndexT indexFromPoint(
 			const Point& point,
@@ -56,7 +62,11 @@ namespace spatial_hash {
 			}
 		}
 
-		
+		/**
+		* @brief inserts enemy based on its size
+		* @param entity - entities index
+		* @param entityRect - size of entity
+		*/
 		void insert(Entity entity, Rect entityRect) {
 			auto NW = indexFromPoint<BlockIndex>(Point(static_cast<int>(entityRect.x), static_cast<int>(entityRect.y), 0), tileSizeInv);
 			auto NE = indexFromPoint<BlockIndex>(Point(static_cast<int>(entityRect.x + entityRect.width), static_cast<int>(entityRect.y), 0), tileSizeInv);
@@ -81,7 +91,6 @@ namespace spatial_hash {
 			else {
 				tileMap.at(LongIndex(pos.x(), pos.y(), 0)).entitySet.erase(entity);
 
-				//remove(entity, vec(entityPos.x, entityPos.y));
 				remove(entity, vec(entityPos.x + tileSize, entityPos.y));
 				remove(entity, vec(entityPos.x - tileSize, entityPos.y));
 				remove(entity, vec(entityPos.x, entityPos.y + tileSize));

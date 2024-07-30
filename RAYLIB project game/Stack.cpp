@@ -19,8 +19,6 @@ void StackFunctions::PlayGame() {
         spatial_hash::gGird.drawGrid();
         spatial_hash::gGird.drawPopulatedTiles();
     }
-   
-    G::gUI.executeById(G::gUI.getKey());
 
     if (G::GameIsPlaying) {
         std::any_cast<std::shared_ptr<RenderSystem>>(G::renderSystem)->updateSprites();
@@ -34,6 +32,8 @@ void StackFunctions::PlayGame() {
         std::any_cast<std::shared_ptr<EntityRemovalSystem>>(G::entityRemovalSystem)->update();
     }
     //GLOBALS::gBloom.EndMode();
+
+    G::gUI.executeById(G::gUI.getKey());
 
     if (IsKeyPressed(KeyboardKey::KEY_BACKSPACE)) {
         G::camera.target = { 0.0f, 0.0f };

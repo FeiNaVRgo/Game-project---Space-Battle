@@ -4,7 +4,7 @@
 #include "globals.h"
 
 class FunctionalBox {
-private:
+public:
 	raylib::Rectangle rect;
     raylib::Color colRect;
     raylib::Text text;
@@ -16,8 +16,11 @@ public:
         rect.width = measurment.x;
     }
 
+    FunctionalBox(const raylib::Text& text, const raylib::Rectangle& rect, const raylib::Color& colRect) : rect(rect), colRect(colRect), text(text) {}
+
 	bool update() {
         text.Draw(rect.GetPosition());
+
 		if (rect.CheckCollision(GetScreenToWorld2D(GetMousePosition(), G::camera))) {
             rect.DrawLines(colRect);
 			return true;
@@ -27,20 +30,24 @@ public:
 
 	void changeTextOnInput(uint16_t& _t) {
 		int key = GetKeyPressed();
-
-		if (IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_LEFT)) { _t = MouseButton::MOUSE_BUTTON_LEFT; return; }
-		if (IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_RIGHT)) { _t = MouseButton::MOUSE_BUTTON_RIGHT; return; }
-		if (IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_MIDDLE)) { _t = MouseButton::MOUSE_BUTTON_MIDDLE; return; }
-		if (IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_SIDE)) { _t = MouseButton::MOUSE_BUTTON_SIDE; return; }
-		if (IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_EXTRA)) { _t = MouseButton::MOUSE_BUTTON_EXTRA; return; }
-		if (IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_FORWARD)) { _t = MouseButton::MOUSE_BUTTON_FORWARD; return; }
-		if (IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_BACK)) { _t = MouseButton::MOUSE_BUTTON_BACK; return; }
+        
+		if (IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_LEFT))     { _t = MouseButton::MOUSE_BUTTON_LEFT; return; }
+		if (IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_RIGHT))    { _t = MouseButton::MOUSE_BUTTON_RIGHT; return; }
+		if (IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_MIDDLE))   { _t = MouseButton::MOUSE_BUTTON_MIDDLE; return; }
+		if (IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_SIDE))     { _t = MouseButton::MOUSE_BUTTON_SIDE; return; }
+		if (IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_EXTRA))    { _t = MouseButton::MOUSE_BUTTON_EXTRA; return; }
+		if (IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_FORWARD))  { _t = MouseButton::MOUSE_BUTTON_FORWARD; return; }
+		if (IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_BACK))     { _t = MouseButton::MOUSE_BUTTON_BACK; return; }
 
 		while (key > 0) {
 			_t = key;
 			key = GetKeyPressed();
 		}
 	}
+
+    void DrawTextBoxed(bool wordWrap) {
+        DrawTextBoxedSelectable(text.font, text.text.c_str(), rect, text.fontSize, text.spacing, wordWrap, text.color, 0, 0, WHITE, WHITE);
+    }
 
     static void DrawTextBoxedSelectable(Font font, const char* text, Rectangle rec, float fontSize, float spacing, bool wordWrap, Color tint, int selectStart, int selectLength, Color selectTint, Color selectBackTint)
     {

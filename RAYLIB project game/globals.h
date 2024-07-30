@@ -19,6 +19,7 @@ namespace KeyInputs{
 }
 
 namespace G {
+	inline ECS::Entity player;
 	inline Camera2D camera = { 0 };
 	inline raylib::Rectangle screen = { 0,0,800,450 };
 	const raylib::Rectangle gridRect = { 0.0f, 0.0f, 5760, 5760 };

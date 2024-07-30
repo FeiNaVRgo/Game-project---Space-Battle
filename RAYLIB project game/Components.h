@@ -322,8 +322,10 @@ struct HealthSystem : public ECS::System {
 			auto& rigidBody = G::gCoordinator.GetComponent<RigidBody>(entity);
 			auto& timerComponent = G::gCoordinator.GetComponent<TimerComponent>(entity);
 			auto& entitySpecific = G::gCoordinator.GetComponent<EntitySpecific>(entity);
-
-			_health.drawHealthBar(rigidBody.hitbox.getHitBoxCenter(), raylib::Vector2(0, sprite.sprite.height / 2.0f + 2));
+			
+			if (entitySpecific.id == ENTITY_ID::ENEMY_ID) {
+				_health.drawHealthBar(rigidBody.hitbox.getHitBoxCenter(), raylib::Vector2(0, sprite.sprite.height / 2.0f + 2));
+			}
 
 			if (_health.isDamaged) {
 				sprite.tint = { 230, 41, 55, 255 };

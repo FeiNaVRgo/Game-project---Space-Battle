@@ -118,29 +118,29 @@ int main() {
 
     #pragma endregion initialization of components and systems
     
-    ECS::Entity player = G::gCoordinator.CreateEntity();
-    G::gCoordinator.AddComponent<Transforms>(player, Transforms{
+    G::player = G::gCoordinator.CreateEntity();
+    G::gCoordinator.AddComponent<Transforms>(G::player, Transforms{
         .position = Vector2(G::gridRect.width / 2.0f, G::gridRect.height / 2.0f),
         .rotation = Vector2(0.0f, 0.0f),
         .scale = Vector2(1.0f, 1.0f)
         });
-    G::gCoordinator.AddComponent<RigidBody>(player, RigidBody{
+    G::gCoordinator.AddComponent<RigidBody>(G::player, RigidBody{
         .velocity = {0.0f, 0.0f},
         .acceleration = {0.0f, 0.0f},
         .hitbox = {{0.0f, 0.0f, 18.0f, 18.0f}, raylib::Color::Yellow()},
         .isColliding = false,
         .onWhatSideIsColliding = {false ,false ,false ,false }
         });
-    G::gCoordinator.AddComponent<Sprite>(player, Sprite{
+    G::gCoordinator.AddComponent<Sprite>(G::player, Sprite{
         .sprite = G::playerTexture,
         .angle = 0.0f,
         .tint = {255, 255, 255, 255},
         .origin = raylib::Vector2(G::playerTexture.width * 0.5f, G::playerTexture.height * 0.5f)
         });
-    G::gCoordinator.AddComponent<PlayerSpecific>(player, PlayerSpecific{
+    G::gCoordinator.AddComponent<PlayerSpecific>(G::player, PlayerSpecific{
         .dash = 1.0f
         });
-    G::gCoordinator.AddComponent<Health>(player, Health{
+    G::gCoordinator.AddComponent<Health>(G::player, Health{
         .maxHealth = 30.0f,
         .health = 30.0f,
         .isDamaged = false,
@@ -148,14 +148,14 @@ int main() {
         .healthToSubstract = 0.0f,
         .toBeDamaged = false
         });
-    G::gCoordinator.AddComponent<EntitySpecific>(player, EntitySpecific{
+    G::gCoordinator.AddComponent<EntitySpecific>(G::player, EntitySpecific{
         .id = ENTITY_ID::PLAYER_ID
         });
-    G::gCoordinator.AddComponent<TimerComponent>(player, TimerComponent{});
-    ComponentCommons::addComponent<Damage>(player, 5, 5);
+    G::gCoordinator.AddComponent<TimerComponent>(G::player, TimerComponent{});
+    ComponentCommons::addComponent<Damage>(G::player, 5, 5);
 
-    auto& t = G::gCoordinator.GetComponent<RigidBody>(player);
-    spatial_hash::gGird.insert(player, t.hitbox.hitboxRect);
+    auto& t = G::gCoordinator.GetComponent<RigidBody>(G::player);
+    spatial_hash::gGird.insert(G::player, t.hitbox.hitboxRect);
 
     G::window.SetExitKey(KEY_NULL);
     G::camera.zoom = 1.0f;
