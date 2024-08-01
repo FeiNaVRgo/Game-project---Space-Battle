@@ -44,13 +44,16 @@
     <Image Include="resources\PlayerModel.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="resources\PlayerBulletModel.png">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="resources\DEFAULT_TEXTURE.png">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="resources\EnemyModel.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\PlayerBulletModel2.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\PlayerBulletModel1.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

@@ -43,6 +43,11 @@ namespace spatial_hash {
 				std::floor(point.z() * tileLengthInv));
 		}
 
+		
+		bool checkTile(const LongIndex& point) {
+			return !(tileMap.at(point).entitySet.empty());
+		}
+
 		/**
 		* @param xyz - tile coordinates in grid
 		*/
@@ -123,6 +128,18 @@ namespace spatial_hash {
 			for (auto& [m, t] : tileMap) {
 				t.entitySet.clear();
 			}
+		}
+
+		std::set<Entity> queryFromTile(BlockIndex tilePos) {
+			return tileMap.at(tilePos);
+		}
+
+		std::set<Entity> getNearestTilePosFromPos(vec pos) {
+			int xs = pos.x;
+			int ys = pos.y;
+
+			//TODO: spiral check
+			
 		}
 
 		void drawPopulatedTiles() {

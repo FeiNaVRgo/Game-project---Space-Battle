@@ -156,7 +156,8 @@
   <ItemGroup>
     <Image Include="resources\DEFAULT_TEXTURE.png" />
     <Image Include="resources\EnemyModel.png" />
-    <Image Include="resources\PlayerBulletModel.png" />
+    <Image Include="resources\PlayerBulletModel1.png" />
+    <Image Include="resources\PlayerBulletModel2.png" />
     <Image Include="resources\PlayerModel.png" />
   </ItemGroup>
   <ItemGroup>

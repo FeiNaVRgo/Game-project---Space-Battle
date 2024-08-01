@@ -53,6 +53,7 @@ namespace G {
 	#pragma region loadingTextures
 	inline raylib::Texture2DUnmanaged playerTexture("resources/PlayerModel.png");
 	inline raylib::Texture2DUnmanaged enemyTexture("resources/EnemyModel.png");
-	inline raylib::Texture2DUnmanaged playerBulletTexture("resources/PlayerBulletModel.png");
+	inline raylib::Texture2DUnmanaged playerBulletTexture1("resources/PlayerBulletModel1.png");
+	inline raylib::Texture2DUnmanaged playerBulletTexture2("resources/PlayerBulletModel2.png");
 	#pragma endregion texture unmanaged unload the yourself
 }

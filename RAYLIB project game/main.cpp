@@ -184,7 +184,7 @@ int main() {
 
     G::playerTexture.Unload();
     G::enemyTexture.Unload();
-    G::playerBulletTexture.Unload();
+    G::playerBulletTexture1.Unload();
 
     return 0;
 }

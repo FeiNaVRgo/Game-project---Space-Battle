@@ -15,7 +15,8 @@ enum ENTITY_ID {
 	PLAYER_ID,
 	ENEMY_ID,
 	PLAYER_BULLET_ID,
-	ENEMY_BULLET_ID
+	ENEMY_BULLET_ID.
+	BOSS_ID
 };
 
 class ComponentCommons {
@@ -63,7 +64,7 @@ struct Sprite {
 	float angle;//2
 	raylib::Color tint;//3
 	raylib::Vector2 origin;//4
-
+	
 	~Sprite() {
 		//sprite.Unload();
 	}
@@ -105,8 +106,23 @@ struct Enemy {
 * @brief damageOnContact
 */
 struct Damage {
+	enum class DAMAGE_TYPE {
+		NORMAL,
+		EXPLOSIVE,
+		PENETRATION
+	};
+
 	float damage;//1
 	float damageOnContact;//2
+};
+
+//TODO: add fuel mechanics
+
+struct ChancesOrPercentages {
+	uint8_t criticalChance;
+	uint8_t accuracy;
+	uint8_t luckyHit;
+	uint8_t luck;
 };
 
 struct TimerComponent {
@@ -160,7 +176,7 @@ struct MovmentAI {
 	* @param ampltidue  -  how far wave expand
 	* @param frequency  -  how fast its going up and down
 	*/
-	void sinwaveMovment(float speed ,float angle, float ampltidue, float frequency, raylib::Vector2& velocity) {
+	void movementPatternSinwave(float speed ,float angle, float ampltidue, float frequency, raylib::Vector2& velocity) {
 		float beta = angle + PI / 2.0f;
 		float currentDistance = ampltidue * sinf(GetTime() * frequency);
 
@@ -285,10 +301,10 @@ public:
 					.onWhatSideIsColliding = {false ,false ,false ,false }
 					});
 				G::gCoordinator.AddComponent<Sprite>(entity1, Sprite{
-					.sprite = G::playerBulletTexture,
+					.sprite = G::playerBulletTexture2,
 					.angle = sprite.angle,
 					.tint = {255, 255, 255, 255},
-					.origin = raylib::Vector2(G::playerBulletTexture.width * 0.5f, G::playerBulletTexture.height * 0.5f)
+					.origin = raylib::Vector2(G::playerBulletTexture2.width * 0.5f, G::playerBulletTexture2.height * 0.5f)
 					});
 				G::gCoordinator.AddComponent<Health>(entity1, Health{
 					.maxHealth = 5.0f,
@@ -495,7 +511,7 @@ struct BulletManipulationSystem : ECS::System {
 			auto& sprite = G::gCoordinator.GetComponent<Sprite>(entity);
 			auto& bullet = G::gCoordinator.GetComponent<Bullet>(entity);
 			
-			movmentAI.sinwaveMovment(200.0f, sprite.angle, 100, 10, rigidBody.velocity);
+			movmentAI.movementPatternSinwave(200.0f, sprite.angle, 100, 10, rigidBody.velocity);
 
 			if (!raylib::containsRect(G::gridRect, rigidBody.hitbox.hitboxRect)) {
 				health.health = 0.0f;

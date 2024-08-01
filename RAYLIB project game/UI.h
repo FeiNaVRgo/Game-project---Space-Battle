@@ -1,8 +1,11 @@
 #pragma once
+#include <src/raylib-cpp.hpp>
 #include <memory>
 #include <functional>
 #include <stack>
 #include <unordered_map>
+
+#include "ECS.h"
 
 enum FUNC_UI_ID {
 	ID_NULL               = 0,
@@ -21,15 +24,34 @@ struct UIFunctions {
 
 template<typename Key = uint32_t, typename Item = std::function<void()>>
 struct ParentItem {//bad naming
-	Key key;
+	Key pKey;
 	Item item;
 
-	ParentItem(Key _key, Item _item) : key(_key), item(_item) {}
-	ParentItem(Item _item, Key _key) : key(_key), item(_item) {}
+	ParentItem(Key _pkey, Item _item) : pKey(_pkey), item(_item) {}
+	ParentItem(Item _item, Key _pkey) : pKey(_pkey), item(_item) {}
 };
 
 struct InvItem : ParentItem<> {
-	
+	using Key = uint32_t;
+	using Item = std::function<void()>;
+
+	enum class SLOT_PURPOSE_ID {
+		KEEPING       = 0,
+		ACTIVE        = 1
+	};
+
+	struct InventorySlot {
+		ECS::Entity itemToKeep;
+		raylib::Rectangle rectSlot;
+		uint16_t purposeId;
+ 	};
+
+	void DragAndPut() {
+		//will need to implement upgrades now for fucks sake
+		
+	}
+
+	InvItem(Item _item, Key _pkey) : ParentItem(_item, _pkey) {}
 };
 
 template<typename Key = uint32_t, typename Item = std::function<void()>>
@@ -45,9 +67,9 @@ private:
 		keyStack.push(FUNC_UI_ID::ID_GENERAL_UI);
 	}
 
-	template<typename... Types>
+	template<typename T, typename... Types>
 	void pushToMap(Key key, Types... args) {
-		funcMap.emplace(key, std::make_shared<ParentItem<>>(args...));
+		funcMap.emplace(key, std::make_shared<T>(args...));
 	}
 public:
 	void resetPreviousKey() {
@@ -78,10 +100,10 @@ public:
 
 	void init() {
 		initStack();
-		pushToMap(FUNC_UI_ID::ID_GENERAL_UI, UIFunctions::generalUI, FUNC_UI_ID::ID_NULL);
-		pushToMap(FUNC_UI_ID::ID_PAUSE, UIFunctions::pause, FUNC_UI_ID::ID_GENERAL_UI);
-		pushToMap(FUNC_UI_ID::ID_INVENTORY, UIFunctions::inventory, FUNC_UI_ID::ID_GENERAL_UI);
-		pushToMap(FUNC_UI_ID::ID_INVENTORY_STATS, UIFunctions::inventoryStats, FUNC_UI_ID::ID_INVENTORY);
+		pushToMap<ParentItem<>>(FUNC_UI_ID::ID_GENERAL_UI, UIFunctions::generalUI, FUNC_UI_ID::ID_NULL);
+		pushToMap<ParentItem<>>(FUNC_UI_ID::ID_PAUSE, UIFunctions::pause, FUNC_UI_ID::ID_GENERAL_UI);
+		pushToMap<ParentItem<>>(FUNC_UI_ID::ID_INVENTORY, UIFunctions::inventory, FUNC_UI_ID::ID_GENERAL_UI);
+		pushToMap<InvItem>(FUNC_UI_ID::ID_INVENTORY_STATS, UIFunctions::inventoryStats, FUNC_UI_ID::ID_INVENTORY);
 	}
 
 	void executeById(Key id) {
@@ -91,7 +113,7 @@ public:
 
 		auto p = funcMap.at(id);
 		p->item();
-		executeById(p->key);
+		executeById(p->pKey);
 	}
 };
 

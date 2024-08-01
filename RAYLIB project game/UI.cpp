@@ -57,15 +57,28 @@ void UIFunctions::inventory() {
 	raylib::Rectangle core(raylib::getCenterRect(invBase) - raylib::Vector2{30, 30}, {60, 60});
 	core.Draw({ 0, 0, 0, 50 });
 
-	raylib::Rectangle staitcWeapon1(raylib::getCenterRect(core) - raylib::Vector2{60, 80}, raylib::Vector2{40, 40});
-	staitcWeapon1.Draw({ 0, 0, 0, 50 });
+	raylib::Rectangle staticWeapon1(raylib::getCenterRect(core) - raylib::Vector2{60, 80}, raylib::Vector2{40, 40});
+	staticWeapon1.Draw({ 0, 0, 0, 50 });
 
-	raylib::Rectangle staitcWeapon2(raylib::getCenterRect(core) - raylib::Vector2{ -20, 80 }, raylib::Vector2{ 40, 40 });
-	staitcWeapon2.Draw({ 0, 0, 0, 50 });
+	raylib::Rectangle staticWeapon2(raylib::getCenterRect(core) - raylib::Vector2{ -20, 80 }, raylib::Vector2{ 40, 40 });
+	staticWeapon2.Draw({ 0, 0, 0, 50 });
+	if (IsKeyPressed(KeyboardKey::KEY_R)) {
+		if (G::gUI.getKey() == FUNC_UI_ID::ID_INVENTORY) {
+			G::gUI.pushToStack(FUNC_UI_ID::ID_INVENTORY_STATS);
+		}
+		else {
+			G::gUI.pushToStack(FUNC_UI_ID::ID_INVENTORY);
+		}
+	}
 
 	BeginMode2D(G::camera);
 }
 
 void UIFunctions::inventoryStats() {
+	EndMode2D();
 
+	raylib::Rectangle r(0, 0, 10, 10);
+	r.Draw(RED);
+
+	BeginMode2D(G::camera);
 }
