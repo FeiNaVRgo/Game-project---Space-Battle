@@ -16,6 +16,7 @@
 namespace KeyInputs{
 	inline uint16_t SHOOT = MouseButton::MOUSE_BUTTON_LEFT;
 	inline uint16_t FLY = KeyboardKey::KEY_W;
+	inline uint16_t INVENTORY = KeyboardKey::KEY_E;
 }
 
 namespace G {

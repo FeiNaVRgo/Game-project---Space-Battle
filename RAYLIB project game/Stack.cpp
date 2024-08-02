@@ -133,12 +133,21 @@ void StackFunctions::SettingsKeyBoard() {
         RED,
         raylib::Text("Fly: " + raylib::KeyInputToChar(KeyInputs::FLY), 20, BEIGE, GetFontDefault(), 1.0f)
     );  
+
+    FunctionalBox fInv(
+        { 20.0f, 50.0f },
+        RED,
+        raylib::Text("Inventory: " + raylib::KeyInputToChar(KeyInputs::INVENTORY), 20, BEIGE, GetFontDefault(), 1.0f)
+    );
  
     if (fShoot.update()) {
         fShoot.changeTextOnInput(KeyInputs::SHOOT);
     }
     if (fFly.update()) {
         fFly.changeTextOnInput(KeyInputs::FLY);
+    }
+    if (fInv.update()) {
+        fInv.changeTextOnInput(KeyInputs::INVENTORY);
     }
 
     if (IsKeyPressed(KeyboardKey::KEY_BACKSPACE)) {

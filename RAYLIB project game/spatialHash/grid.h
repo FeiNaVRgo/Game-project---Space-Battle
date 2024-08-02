@@ -103,12 +103,12 @@ namespace spatial_hash {
 			}
 		}
 
-		std::set<Entity> query(Rect earea) {
+		std::set<Entity> query(Rect area) {
 			std::set<Entity> entityQuery;
 
-			auto NW = indexFromPoint<BlockIndex>(Point(static_cast<int>(earea.x), static_cast<int>(earea.y), 0), tileSizeInv);
-			auto NE = indexFromPoint<BlockIndex>(Point(static_cast<int>(earea.x + earea.width), static_cast<int>(earea.y), 0), tileSizeInv);
-			auto SW = indexFromPoint<BlockIndex>(Point(static_cast<int>(earea.x), static_cast<int>(earea.y + earea.height), 0), tileSizeInv);
+			auto NW = indexFromPoint<BlockIndex>(Point(static_cast<int>(area.x), static_cast<int>(area.y), 0), tileSizeInv);
+			auto NE = indexFromPoint<BlockIndex>(Point(static_cast<int>(area.x + area.width), static_cast<int>(area.y), 0), tileSizeInv);
+			auto SW = indexFromPoint<BlockIndex>(Point(static_cast<int>(area.x), static_cast<int>(area.y + area.height), 0), tileSizeInv);
 			
 			
 			for (auto x = NW.x(); x <= NE.x(); x++) {
@@ -131,7 +131,7 @@ namespace spatial_hash {
 		}
 
 		std::set<Entity> queryFromTile(BlockIndex tilePos) {
-			return tileMap.at(tilePos);
+			return tileMap.at(LongIndex(tilePos.x(), tilePos.y(), tilePos.z())).entitySet;
 		}
 
 		std::set<Entity> getNearestTilePosFromPos(vec pos) {
@@ -139,7 +139,7 @@ namespace spatial_hash {
 			int ys = pos.y;
 
 			//TODO: spiral check
-			
+			return std::set<Entity>{};
 		}
 
 		void drawPopulatedTiles() {

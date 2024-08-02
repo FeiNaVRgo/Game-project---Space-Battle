@@ -10,12 +10,13 @@
 #include <random>
 #include <vector>
 #include <any>
+#include <iostream>
 
 enum ENTITY_ID {
 	PLAYER_ID,
 	ENEMY_ID,
 	PLAYER_BULLET_ID,
-	ENEMY_BULLET_ID.
+	ENEMY_BULLET_ID,
 	BOSS_ID
 };
 
@@ -118,6 +119,12 @@ struct Damage {
 
 //TODO: add fuel mechanics
 
+
+struct Fuel {
+	uint16_t fuelAmount;
+	uint8_t fuelUsagePerSecond;
+};
+
 struct ChancesOrPercentages {
 	uint8_t criticalChance;
 	uint8_t accuracy;
@@ -154,6 +161,11 @@ struct Child {
 
 };
 
+struct JustBorn {
+	ECS::Entity parent;
+	raylib::Vector2 bornPos;
+};
+
 struct MovmentAI {
 	void chase(const raylib::Vector2& pos, const raylib::Vector2& posToChase, raylib::Vector2& velocity, float& angle, float speed, float seeRadius) {
 		float distance = Vector2Distance(pos, posToChase);
@@ -183,9 +195,26 @@ struct MovmentAI {
 		velocity.x = sinf(beta) * currentDistance + sinf(angle) * speed;
 		velocity.y = -cosf(beta) * currentDistance + -cosf(angle) * speed;
 	}
+
+	bool boomerangDistanceH = false;
+	bool boomerangDistanceW = false;
+
+	void movementPatternBoomerang(float speed, float& angle, float distanceH, float distanceW, raylib::Vector2& velocity, const raylib::Vector2& position, const raylib::Vector2& anchor) {
+		auto distance = Vector2Distance(position, anchor);
+		if (distance >= distanceH) {
+			boomerangDistanceH = true;
+		}
+
+		
+
+
+		
+		velocity.x = sinf(angle) * speed;
+		velocity.y = -cosf(angle) * speed;
+	}
 };
 
-struct UpgradeSystem {
+struct UpgradeSystem : public ECS::System {
 
 };
 
@@ -322,6 +351,7 @@ public:
 				ComponentCommons::addComponent<TimerComponent>(entity1);
 				ComponentCommons::addComponent<Damage>(entity1, 5, 5);
 				ComponentCommons::addComponent<MovmentAI>(entity1);
+				ComponentCommons::addComponent<JustBorn>(entity1, entity, transform.position);
 
 				auto& t = G::gCoordinator.GetComponent<RigidBody>(entity1);
 				spatial_hash::gGird.insert(entity1, t.hitbox.hitboxRect);
@@ -509,9 +539,11 @@ struct BulletManipulationSystem : ECS::System {
 			auto& health = G::gCoordinator.GetComponent<Health>(entity);
 			auto& movmentAI = G::gCoordinator.GetComponent<MovmentAI>(entity);
 			auto& sprite = G::gCoordinator.GetComponent<Sprite>(entity);
+			auto& justBorn = G::gCoordinator.GetComponent<JustBorn>(entity);
 			auto& bullet = G::gCoordinator.GetComponent<Bullet>(entity);
 			
-			movmentAI.movementPatternSinwave(200.0f, sprite.angle, 100, 10, rigidBody.velocity);
+			//movmentAI.movementPatternSinwave(200.0f, sprite.angle, 100, 10, rigidBody.velocity);
+			movmentAI.movementPatternBoomerang(200.0f, sprite.angle, 100.0f, 40.0f, rigidBody.velocity, raylib::getSizeRect(rigidBody.hitbox.hitboxRect), justBorn.bornPos);
 
 			if (!raylib::containsRect(G::gridRect, rigidBody.hitbox.hitboxRect)) {
 				health.health = 0.0f;

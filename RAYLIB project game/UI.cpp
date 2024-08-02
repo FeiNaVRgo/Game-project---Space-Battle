@@ -32,7 +32,7 @@ void UIFunctions::generalUI() {
 		}
 	}
 
-	if (IsKeyPressed(KeyboardKey::KEY_E)) {
+	if (IsKeyPressed(KeyInputs::INVENTORY)) {
 		if (G::gUI.getKey() == FUNC_UI_ID::ID_GENERAL_UI) {
 			G::gUI.pushToStack(FUNC_UI_ID::ID_INVENTORY);
 		}
@@ -62,6 +62,7 @@ void UIFunctions::inventory() {
 
 	raylib::Rectangle staticWeapon2(raylib::getCenterRect(core) - raylib::Vector2{ -20, 80 }, raylib::Vector2{ 40, 40 });
 	staticWeapon2.Draw({ 0, 0, 0, 50 });
+
 	if (IsKeyPressed(KeyboardKey::KEY_R)) {
 		if (G::gUI.getKey() == FUNC_UI_ID::ID_INVENTORY) {
 			G::gUI.pushToStack(FUNC_UI_ID::ID_INVENTORY_STATS);
@@ -70,6 +71,7 @@ void UIFunctions::inventory() {
 			G::gUI.pushToStack(FUNC_UI_ID::ID_INVENTORY);
 		}
 	}
+	
 
 	BeginMode2D(G::camera);
 }

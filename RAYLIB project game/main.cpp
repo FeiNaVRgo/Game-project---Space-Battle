@@ -12,14 +12,16 @@
 #define GLSL_VERSION            100
 #endif
 
-#define MAX_POSTPRO_SHADERS         12
-
 int main() {
-    //TODO - more diffrent enemies - add coroutines for complex behaviour
-    //TODO - UPGRADES - A LOT OF THEM - it will be like augments for ship and also little upgrades
-    //TODO - gui + health bars for enemies and damage indicators
-    //TODO - particle system
-    //TODO - coroutines with lua
+    //TODO - more diffrent enemies + bosses - add coroutines for complex behaviour - 6
+    //TODO - UPGRADES - A LOT OF THEM - it will be like augments for ship and also little upgrades - 1
+    //TODO - gui(partially done) + for enemies and damage indicators - 1.5
+    //TODO - particle system- when I need this i will do this shit
+    //TODO - coroutines with lua - 3
+    //TODO - funny bullet behaviours - mayby try coroutines you lazy fuck - 4
+    //TODO - TURRESTS FOR PLAYER TO TRY THESE BULLETS BEHAVIOURS - PART OF UPGRADES SYSTEM - 5
+    //TODO - make script for generating code for upgrades -2
+    //maybe skill tree or some shit and multiple characters
 
     // Initialization
     //--------------------------------------------------------------------------------------
@@ -39,6 +41,7 @@ int main() {
     G::gCoordinator.RegisterComponent<EntitySpecific>();
     G::gCoordinator.RegisterComponent<Damage>();
     G::gCoordinator.RegisterComponent<TimerComponent>();
+    G::gCoordinator.RegisterComponent<JustBorn>();
 
     G::physicsSystem = G::gCoordinator.RegisterSystem<PhysicsSystem>();
 
@@ -95,8 +98,9 @@ int main() {
     signature7.set(G::gCoordinator.GetComponentType<RigidBody>());
     signature7.set(G::gCoordinator.GetComponentType<Health>());
     signature7.set(G::gCoordinator.GetComponentType<Bullet>());
-    signature7.set(G::gCoordinator.GetComponentType< MovmentAI>());
+    signature7.set(G::gCoordinator.GetComponentType<MovmentAI>());
     signature7.set(G::gCoordinator.GetComponentType<Sprite>());
+    signature7.set(G::gCoordinator.GetComponentType<JustBorn>());
     G::gCoordinator.SetSystemSignature<BulletManipulationSystem>(signature7);
 
     G::collisionSystem = G::gCoordinator.RegisterSystem<CollisionSystem>();
