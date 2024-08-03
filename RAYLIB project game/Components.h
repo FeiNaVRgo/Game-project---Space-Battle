@@ -162,8 +162,11 @@ struct Child {
 };
 
 struct JustBorn {
-	ECS::Entity parent;
-	raylib::Vector2 bornPos;
+	ECS::Entity parent;//1
+	raylib::Vector2 bornPos;//2
+	raylib::Vector2 bornVel;//3
+	float bornAngle;//4
+	double bornTime;//5
 };
 
 struct MovmentAI {
@@ -196,21 +199,42 @@ struct MovmentAI {
 		velocity.y = -cosf(beta) * currentDistance + -cosf(angle) * speed;
 	}
 
-	bool boomerangDistanceH = false;
-	bool boomerangDistanceW = false;
+	bool boomerangDistanceH;
+	bool boomerangDistanceW;
 
-	void movementPatternBoomerang(float speed, float& angle, float distanceH, float distanceW, raylib::Vector2& velocity, const raylib::Vector2& position, const raylib::Vector2& anchor) {
-		auto distance = Vector2Distance(position, anchor);
-		if (distance >= distanceH) {
-			boomerangDistanceH = true;
+	void movementPatternBoomerang(float speed, float& angle, float distanceH, float distanceW, raylib::Vector2& velocity, const raylib::Vector2& position, ECS::Entity anchor) {
+		auto& born = G::gCoordinator.GetComponent<JustBorn>(anchor);
+		auto& mAI = G::gCoordinator.GetComponent<MovmentAI>(anchor);
+		//TODO: after complete movement make projectile chase or go back to owner
+		auto  x = Vector2Distance(position, born.bornPos);//for one frame position is {9, 9} and x is greater than distanceH for this split secound
+		float a = 45.0f * DEG2RAD;
+		float g = (2 * born.bornVel.Length() * born.bornVel.Length() * cosf(a) * cosf(a)) / distanceH;
+		float dt = GetTime() - born.bornTime;
+		
+		float vy = born.bornVel.Length() * sinf(a) - g * dt;
+		float vx = born.bornVel.Length() * cosf(a);
+
+		float vxp = vx * cosf(born.bornAngle) + vy * sinf(born.bornAngle);
+		float vyp = vx * sinf(born.bornAngle) - vy * cosf(born.bornAngle);
+
+		
+		if (x >= distanceH && position.x != 9) {
+			if (!mAI.boomerangDistanceH) {
+				born.bornTime = GetTime();
+			}
+			mAI.boomerangDistanceH = true;
 		}
 
-		
-
-
-		
-		velocity.x = sinf(angle) * speed;
-		velocity.y = -cosf(angle) * speed;
+		if (!mAI.boomerangDistanceH) {
+			angle = atan2f(vxp, -vyp) - PI / 2.0f;
+			velocity.x = sinf(angle) * speed;
+			velocity.y = -cosf(angle) * speed;
+		}
+		else {
+			angle = atan2f(vxp, -vyp) - PI / 2.0f;
+			velocity.x = -sinf(angle) * speed;
+			velocity.y = cosf(angle) * speed;
+		}
 	}
 };
 
@@ -350,8 +374,8 @@ public:
 					});
 				ComponentCommons::addComponent<TimerComponent>(entity1);
 				ComponentCommons::addComponent<Damage>(entity1, 5, 5);
-				ComponentCommons::addComponent<MovmentAI>(entity1);
-				ComponentCommons::addComponent<JustBorn>(entity1, entity, transform.position);
+				ComponentCommons::addComponent<MovmentAI>(entity1, false, false);
+				ComponentCommons::addComponent<JustBorn>(entity1, entity, transform.position, rigidBody.velocity, sprite.angle, GetTime());
 
 				auto& t = G::gCoordinator.GetComponent<RigidBody>(entity1);
 				spatial_hash::gGird.insert(entity1, t.hitbox.hitboxRect);
@@ -501,9 +525,7 @@ struct EnemySpawningSystem : public ECS::System{
 					G::gCoordinator.AddComponent<Enemy>(entity1, Enemy{
 
 						});
-					G::gCoordinator.AddComponent<MovmentAI>(entity1, MovmentAI{
-
-						});
+					ComponentCommons::addComponent<MovmentAI>(entity1, false, false);
 					G::gCoordinator.AddComponent<EntitySpecific>(entity1, EntitySpecific{
 					.id = ENTITY_ID::ENEMY_ID
 						});
@@ -543,7 +565,7 @@ struct BulletManipulationSystem : ECS::System {
 			auto& bullet = G::gCoordinator.GetComponent<Bullet>(entity);
 			
 			//movmentAI.movementPatternSinwave(200.0f, sprite.angle, 100, 10, rigidBody.velocity);
-			movmentAI.movementPatternBoomerang(200.0f, sprite.angle, 100.0f, 40.0f, rigidBody.velocity, raylib::getSizeRect(rigidBody.hitbox.hitboxRect), justBorn.bornPos);
+			movmentAI.movementPatternBoomerang(200.0f, sprite.angle, 100.0f, 10.0f, rigidBody.velocity, raylib::getCenterRect(rigidBody.hitbox.hitboxRect), entity);
 
 			if (!raylib::containsRect(G::gridRect, rigidBody.hitbox.hitboxRect)) {
 				health.health = 0.0f;
