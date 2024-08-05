@@ -145,5 +145,39 @@ namespace raylib {
 
         return dimensions * 0.5f;
     }
+
+    static inline float crossProductVector2(raylib::Vector2 v1, raylib::Vector2 v2) {
+        return v1.x * v2.y - v1.y * v2.x;
+    }
+
+    /**
+    * @brief calculates point of intersection between two rays
+    * @brief returns empty vector when there is no intersection
+    * @brief only for 2d!
+    */
+    static inline std::vector<raylib::Vector3> intersectsRayToRay(const raylib::Ray& q1, const raylib::Ray& q2) {
+        const auto origin_diff = raylib::Vector3(q2.position) - raylib::Vector3(q1.position);
+
+        const auto cp1 = raylib::crossProductVector2(raylib::Vector2(q1.direction.x, q1.direction.y), raylib::Vector2(q2.direction.x, q2.direction.y));
+
+        const auto cp2 = raylib::crossProductVector2(raylib::Vector2(origin_diff.x, origin_diff.y), raylib::Vector2(q2.direction.x, q2.direction.y));
+
+        if (cp1 == 0) // Early rejection
+        {
+            if (cp2 == 0)
+                return { raylib::Vector3(q1.position) }; // co-linear
+            else
+                return {}; // parallel
+        }
+
+        const auto cp3 = raylib::crossProductVector2(raylib::Vector2(origin_diff.x, origin_diff.y), raylib::Vector2(q1.direction.x, q1.direction.y));
+        const auto t1 = cp2 / cp1; // distance along q1 to intersection
+        const auto t2 = cp3 / cp1; // distance along q2 to intersection
+
+        if (t1 >= 0 && t2 >= 0)
+            return { raylib::Vector3(q1.position) + raylib::Vector3(q1.direction) * t1 }; // Intersection, both rays positive
+        else
+            return {}; // Intersection, but behind a rays origin, so not really an intersection in context
+    }
 }
 

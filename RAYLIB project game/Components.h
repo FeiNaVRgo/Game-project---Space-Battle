@@ -10,7 +10,11 @@
 #include <random>
 #include <vector>
 #include <any>
+#include <numbers>
 #include <iostream>
+
+static std::random_device rd;
+static std::mt19937 gen(rd());
 
 enum ENTITY_ID {
 	PLAYER_ID,
@@ -108,7 +112,7 @@ struct Enemy {
 */
 struct Damage {
 	enum class DAMAGE_TYPE {
-		NORMAL,
+		NORMAL = 0,
 		EXPLOSIVE,
 		PENETRATION
 	};
@@ -117,8 +121,28 @@ struct Damage {
 	float damageOnContact;//2
 };
 
-//TODO: add fuel mechanics
+struct upgDebuff {
+	enum class DEBUFF_TYPES {
+		BLEED = 0,
+		BURN,
+	};
 
+	bool isDamageOverTime;
+	uint32_t damageOverTime;
+};
+
+struct Debuffs : upgDebuff {
+	struct debuffProck {
+		DEBUFF_TYPES type;
+		uint32_t prock;
+	};
+
+	std::vector<debuffProck> debuffVec;
+	
+	void checkDebuffs(){
+		//TODO
+	}
+};
 
 struct Fuel {
 	uint16_t fuelAmount;
@@ -170,7 +194,10 @@ struct JustBorn {
 };
 
 struct MovmentAI {
-	void chase(const raylib::Vector2& pos, const raylib::Vector2& posToChase, raylib::Vector2& velocity, float& angle, float speed, float seeRadius) {
+	bool DistanceH;
+	bool DistanceW;
+
+	void chase(const raylib::Vector2& pos, const raylib::Vector2& posToChase, raylib::Vector2& velocity, float& angle, float speed, float seeRadius = std::numeric_limits<float>::infinity()) {
 		float distance = Vector2Distance(pos, posToChase);
 		if (distance <= seeRadius) {
 			raylib::Vector2 v = { (posToChase.x - pos.x) / distance,
@@ -186,54 +213,162 @@ struct MovmentAI {
 	}
 
 	/**
-	* @brief for bullets movment pattern
-	* @param angle  -  to change rotation in sinusoidal pattern
-	* @param ampltidue  -  how far wave expand
-	* @param frequency  -  how fast its going up and down
+	* @brief sinusoidal pattern
+	* @param params -  0 for maxX, 1 for maxY
 	*/
-	void movementPatternSinwave(float speed ,float angle, float ampltidue, float frequency, raylib::Vector2& velocity) {
-		float beta = angle + PI / 2.0f;
-		float currentDistance = ampltidue * sinf(GetTime() * frequency);
-
-		velocity.x = sinf(beta) * currentDistance + sinf(angle) * speed;
-		velocity.y = -cosf(beta) * currentDistance + -cosf(angle) * speed;
+	static inline double sinwaveExactFunc(double x, std::vector<float> params) {
+		return params.at(1) * sinf(x * (PI / params.at(0)));
 	}
 
-	bool boomerangDistanceH;
-	bool boomerangDistanceW;
+	/**
+	* @brief y = a * sin (b)
+	* @param params -  0 for b, 1 for a
+	*/
+	static inline double sinwaveFunc(double x, std::vector<float> params) {
+		return params.at(1) * sinf(x * params.at(0));
+	}
 
-	void movementPatternBoomerang(float speed, float& angle, float distanceH, float distanceW, raylib::Vector2& velocity, const raylib::Vector2& position, ECS::Entity anchor) {
+	/**
+	* @brief y = ax^2 + bx
+	* @param params - 0 for a, 1 for b
+	*/
+	static inline double parabolicFunc(double x, std::vector<float> params) {
+		return params.at(0) * x * x + params.at(1) * x;
+	}
+
+	/**
+	* @brief y = ax^2 + bx
+	* @param params -  0 for T, 1 for H
+	*/
+	static inline double parabolicExactFunc(double x, std::vector<float> params) {
+		float T = params.at(0);
+		float H = params.at(1);
+
+		double c = T / 2.0f;
+		double a = H / (c * c);
+		double b = H;
+
+		return -(a * (x - c) * (x - c)) + b;
+	}
+
+	static inline double straightLineFunc(double x, std::vector<float> params) {
+		return params.at(0) * x;
+	}
+
+	/**
+	* @brief makes bullet follow path of given function
+	*/
+	void moveInLineOfFunc(float speed, ECS::Entity anchor, std::vector<float> params, raylib::RealFunc f) {
 		auto& born = G::gCoordinator.GetComponent<JustBorn>(anchor);
-		auto& mAI = G::gCoordinator.GetComponent<MovmentAI>(anchor);
-		//TODO: after complete movement make projectile chase or go back to owner
-		auto  x = Vector2Distance(position, born.bornPos);//for one frame position is {9, 9} and x is greater than distanceH for this split secound
-		float a = 45.0f * DEG2RAD;
-		float g = (2 * born.bornVel.Length() * born.bornVel.Length() * cosf(a) * cosf(a)) / distanceH;
-		float dt = GetTime() - born.bornTime;
-		
-		float vy = born.bornVel.Length() * sinf(a) - g * dt;
-		float vx = born.bornVel.Length() * cosf(a);
+		auto& transform = G::gCoordinator.GetComponent<Transforms>(anchor);
+		auto& rigidBody = G::gCoordinator.GetComponent<RigidBody>(anchor);
+		auto& sprite = G::gCoordinator.GetComponent<Sprite>(anchor);
 
-		float vxp = vx * cosf(born.bornAngle) + vy * sinf(born.bornAngle);
-		float vyp = vx * sinf(born.bornAngle) - vy * cosf(born.bornAngle);
+		auto vel2 = born.bornVel.Rotate(-PI / 2.0f);
+		auto vel3 = born.bornVel.Rotate(PI / 2.0f);
 
+		raylib::Ray rayBorn1(Vector3{ born.bornPos.x, born.bornPos.y, 0 }, Vector3{ born.bornVel.x, born.bornVel.y, 0.0f });
+		raylib::Ray rayBorn2(Vector3{ transform.position.x, transform.position.y, 0 }, Vector3{ vel2.x, vel2.y, 0.0f });
+		raylib::Ray rayBorn3(Vector3{ transform.position.x, transform.position.y, 0 }, Vector3{ vel3.x, vel3.y, 0.0f });
 		
-		if (x >= distanceH && position.x != 9) {
-			if (!mAI.boomerangDistanceH) {
-				born.bornTime = GetTime();
+		if (G::debugMode) {
+			rayBorn1.Draw(RED);
+			rayBorn2.Draw(RED);
+			rayBorn3.Draw(RED);
+		}
+		
+		auto translatedX1 = raylib::intersectsRayToRay(rayBorn1, rayBorn2);
+		auto translatedX2 = raylib::intersectsRayToRay(rayBorn1, rayBorn3);
+
+		if (!translatedX1.empty()) {
+			raylib::Vector2 vecTX{ translatedX1.front().x, translatedX1.front().y };
+			if (G::debugMode)
+				vecTX.DrawCircle(10, BLUE);
+
+			auto x = Vector2Distance(vecTX, born.bornPos);
+			sprite.angle = atanf(raylib::derivative(f, x, params)) + born.bornAngle;
+
+			rigidBody.velocity.x = sinf(sprite.angle) * speed;
+			rigidBody.velocity.y = -cosf(sprite.angle) * speed;
+		}
+		else if (!translatedX2.empty()) {
+			raylib::Vector2 vecTX{ translatedX2.front().x, translatedX2.front().y };
+			if (G::debugMode)
+				vecTX.DrawCircle(10, BLUE);
+
+			auto x = Vector2Distance(vecTX, born.bornPos);
+			sprite.angle = atanf(raylib::derivative(f, x, params)) + born.bornAngle;
+
+			rigidBody.velocity.x = sinf(sprite.angle) * speed;
+			rigidBody.velocity.y = -cosf(sprite.angle) * speed;
+		}
+	}
+
+	/**
+	* @brief makes bullet follow certain path
+	* @brief first argument of params must by maxX
+	*/
+	void moveInLineOfFuncAndGoBack(float speed, ECS::Entity anchor, std::vector<float> params, raylib::RealFunc f, raylib::Vector2 whereToDestroy) {
+		auto& born = G::gCoordinator.GetComponent<JustBorn>(anchor);
+		auto& transform = G::gCoordinator.GetComponent<Transforms>(anchor);
+		auto& rigidBody = G::gCoordinator.GetComponent<RigidBody>(anchor);
+		auto& sprite = G::gCoordinator.GetComponent<Sprite>(anchor);
+
+		auto vel2 = born.bornVel.Rotate(-PI / 2.0f);
+		auto vel3 = born.bornVel.Rotate(PI / 2.0f);
+
+		raylib::Ray rayBorn1(Vector3{ born.bornPos.x, born.bornPos.y, 0 }, Vector3{ born.bornVel.x, born.bornVel.y, 0.0f });
+		raylib::Ray rayBorn2(Vector3{ transform.position.x, transform.position.y, 0 }, Vector3{ vel2.x, vel2.y, 0.0f });
+		raylib::Ray rayBorn3(Vector3{ transform.position.x, transform.position.y, 0 }, Vector3{ vel3.x, vel3.y, 0.0f });
+
+		rayBorn1.Draw(RED);
+		rayBorn2.Draw(RED);
+		rayBorn3.Draw(RED);
+
+		auto translatedX1 = raylib::intersectsRayToRay(rayBorn1, rayBorn2);
+		auto translatedX2 = raylib::intersectsRayToRay(rayBorn1, rayBorn3);
+
+		if (!translatedX1.empty()) {
+			raylib::Vector2 vecTX{ translatedX1.front().x, translatedX1.front().y };
+			vecTX.DrawCircle(10, BLUE);
+
+			auto x = Vector2Distance(vecTX, born.bornPos);
+			sprite.angle = atanf(raylib::derivative(f, x, params)) + born.bornAngle;
+
+			if (x < params.at(0) && transform.position.x != 9) {
+				rigidBody.velocity.x = sinf(sprite.angle) * speed;
+				rigidBody.velocity.y = -cosf(sprite.angle) * speed;
 			}
-			mAI.boomerangDistanceH = true;
+			else {
+				if (!DistanceH) {
+					DistanceH = true;
+				}
+				rigidBody.velocity.x = -sinf(sprite.angle) * speed;
+				rigidBody.velocity.y = -cosf(sprite.angle) * speed;
+			}
+		}
+		else if (!translatedX2.empty()) {
+			raylib::Vector2 vecTX{ translatedX2.front().x, translatedX2.front().y };
+			vecTX.DrawCircle(10, BLUE);
+
+			auto x = Vector2Distance(vecTX, born.bornPos);
+			sprite.angle = atanf(raylib::derivative(f, x, params)) + born.bornAngle;
+
+			if (x < params.at(0) && transform.position.x != 9) {
+				rigidBody.velocity.x = sinf(sprite.angle) * speed;
+				rigidBody.velocity.y = -cosf(sprite.angle) * speed;
+			}
+			else {
+				if (!DistanceH) {
+					DistanceH = true;
+				}
+				rigidBody.velocity.x = -sinf(sprite.angle) * speed;
+				rigidBody.velocity.y = -cosf(sprite.angle) * speed;
+			}
 		}
 
-		if (!mAI.boomerangDistanceH) {
-			angle = atan2f(vxp, -vyp) - PI / 2.0f;
-			velocity.x = sinf(angle) * speed;
-			velocity.y = -cosf(angle) * speed;
-		}
-		else {
-			angle = atan2f(vxp, -vyp) - PI / 2.0f;
-			velocity.x = -sinf(angle) * speed;
-			velocity.y = cosf(angle) * speed;
+		if (whereToDestroy.CheckCollision(rigidBody.hitbox.hitboxRect) && DistanceH) {
+			G::gEntitySetToBeDestroyed.insert(anchor);
 		}
 	}
 };
@@ -480,9 +615,6 @@ struct EnemySpawningSystem : public ECS::System{
 			if (G::gEnemyCounter == 0) {
 				G::gLevel++;
 				G::gEnemyCounter = G::gLevel;
-			
-				std::random_device rd;
-				std::mt19937 gen(rd());
 
 				raylib::Vector2 vP = G::gPlayerPos;
 				std::uniform_int_distribution distribX(static_cast<int>(vP.x) - 100, static_cast<int>(vP.x) + 100);
@@ -549,7 +681,7 @@ struct EnemyAIMovmentSystem : ECS::System {
 			auto& movmentAI = G::gCoordinator.GetComponent<MovmentAI>(entity);
 			//auto& enemy = GLOBALS::gCoordinator.GetComponent<Enemy>(entity);
 			
-			movmentAI.chase(transform.position, G::gPlayerPos, rigidBody.velocity, sprite.angle, 50.0f, 500.0f);
+			movmentAI.chase(transform.position, G::gPlayerPos, rigidBody.velocity, sprite.angle, 50.0f);
 		}
 	}
 };
@@ -564,8 +696,7 @@ struct BulletManipulationSystem : ECS::System {
 			auto& justBorn = G::gCoordinator.GetComponent<JustBorn>(entity);
 			auto& bullet = G::gCoordinator.GetComponent<Bullet>(entity);
 			
-			//movmentAI.movementPatternSinwave(200.0f, sprite.angle, 100, 10, rigidBody.velocity);
-			movmentAI.movementPatternBoomerang(200.0f, sprite.angle, 100.0f, 10.0f, rigidBody.velocity, raylib::getCenterRect(rigidBody.hitbox.hitboxRect), entity);
+			movmentAI.moveInLineOfFunc(200.0f, entity, std::vector<float>{tanf(2.f*PI)}, MovmentAI::straightLineFunc);//func neads to be zeroed to follow bornAngle path
 
 			if (!raylib::containsRect(G::gridRect, rigidBody.hitbox.hitboxRect)) {
 				health.health = 0.0f;

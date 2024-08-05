@@ -1,7 +1,11 @@
 #pragma once
 #include <src\raylib-cpp.hpp>
+#include <functional>
+#include <Eigen/Dense>
 
 namespace raylib {
+	using RealFunc            = std::function<double(double, std::vector<float>)>;
+	using RealFuncDerivative  = std::function<double(RealFunc, double, std::vector<float>)>;
 
 	constexpr float getRightRect(const raylib::Rectangle& r1) noexcept {
 		return r1.x + r1.width;
@@ -70,5 +74,24 @@ namespace raylib {
 		}
 		delete[] isCollision;
 		return false;
+	}
+
+	static inline double derivative(RealFunc f, double x, std::vector<float> params) {
+		//double h = sqrt(std::numeric_limits<double>::epsilon());
+		double h = 0.01;
+		return (f(x + h, params) - f(x - h, params)) / (2.0 * h);
+	}
+
+	/**
+	* @brief so slow that program freezes
+	*/
+	static inline double NewtonsMethod(RealFunc f, RealFuncDerivative d, double x0, double precision, std::vector<float> params) {
+		double x = x0;
+		for (size_t i = 0;; i++) {
+			x = x - (f(x, params) / d(f, x, params));
+			if (abs(f(x, params)) < precision) {
+				return x;
+			}
+		}
 	}
 }
