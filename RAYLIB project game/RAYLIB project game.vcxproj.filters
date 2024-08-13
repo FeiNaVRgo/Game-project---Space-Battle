@@ -39,6 +39,9 @@
     <ClCompile Include="UI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="EventManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="resources\PlayerModel.png">
@@ -95,6 +98,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Coroutines.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EventManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EntityIds.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Weapons\Weapons.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

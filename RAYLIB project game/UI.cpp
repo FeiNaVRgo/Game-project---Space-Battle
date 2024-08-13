@@ -4,9 +4,6 @@
 #include "FunctionalBox.h"
 #include "Components.h"
 #include <src/raylib-cpp.hpp>
-#include <iostream>
-
-#define INVENTORY_WIDTH 200
 
 void UIFunctions::generalUI() {
 	EndMode2D();
@@ -51,28 +48,21 @@ void UIFunctions::pause() {
 
 void UIFunctions::inventory() {
 	EndMode2D();
-	raylib::Rectangle invBase(G::screenWidth - INVENTORY_WIDTH, 0, INVENTORY_WIDTH, G::screenHeight);
-	invBase.Draw({0, 0, 0, 100});
-
-	raylib::Rectangle core(raylib::getCenterRect(invBase) - raylib::Vector2{30, 30}, {60, 60});
-	core.Draw({ 0, 0, 0, 50 });
-
-	raylib::Rectangle staticWeapon1(raylib::getCenterRect(core) - raylib::Vector2{60, 80}, raylib::Vector2{40, 40});
-	staticWeapon1.Draw({ 0, 0, 0, 50 });
-
-	raylib::Rectangle staticWeapon2(raylib::getCenterRect(core) - raylib::Vector2{ -20, 80 }, raylib::Vector2{ 40, 40 });
-	staticWeapon2.Draw({ 0, 0, 0, 50 });
+	auto& inv = G::gCoordinator.GetComponent<Inventory>(G::player);
+	inv.SetSlotsPos();
+	inv.DrawSlots();
+	
 
 	if (IsKeyPressed(KeyboardKey::KEY_R)) {
-		if (G::gUI.getKey() == FUNC_UI_ID::ID_INVENTORY) {
-			G::gUI.pushToStack(FUNC_UI_ID::ID_INVENTORY_STATS);
+		using enum FUNC_UI_ID;
+		if (G::gUI.getKey() == ID_INVENTORY) {
+			G::gUI.pushToStack(ID_INVENTORY_STATS);
 		}
 		else {
-			G::gUI.pushToStack(FUNC_UI_ID::ID_INVENTORY);
+			G::gUI.pushToStack(ID_INVENTORY);
 		}
 	}
 	
-
 	BeginMode2D(G::camera);
 }
 

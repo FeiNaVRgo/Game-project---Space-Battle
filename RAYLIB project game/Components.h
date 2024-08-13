@@ -1,5 +1,10 @@
 #pragma once
 #include <src/raylib-cpp.hpp>
+#include <random>
+#include <vector>
+#include <any>
+#include <numbers>
+#include <iostream>
 #include "ECS.h"
 #include "globals.h"
 #include "Timer.h"
@@ -7,22 +12,12 @@
 #include "spatialHash/grid.h"
 #include "GeometryCalc.h"
 #include "Coroutines.h"
-#include <random>
-#include <vector>
-#include <any>
-#include <numbers>
-#include <iostream>
+#include "EntityIds.h"
+
+#define INVENTORY_WIDTH 200
 
 static std::random_device rd;
 static std::mt19937 gen(rd());
-
-enum ENTITY_ID {
-	PLAYER_ID,
-	ENEMY_ID,
-	PLAYER_BULLET_ID,
-	ENEMY_BULLET_ID,
-	BOSS_ID
-};
 
 class ComponentCommons {
 public:
@@ -96,7 +91,77 @@ struct Health {
 };
 
 struct PlayerSpecific {
+	using Weapon = ECS::Entity;
 	float dash;//1
+};
+
+struct Inventory {
+	enum class SLOT_IMPL {
+		ACTIVE         = 0,
+		NONACTIVE      = 1
+	};
+
+	enum class SLOT_STATE {
+		STATE_EMPTY		= 0,
+		STATE_OCCUPIED  = 1
+	};
+
+	struct SlotDef {
+		SLOT_IMPL slotImpl{};
+		SLOT_STATE slotState{};
+		
+		raylib::Vector2 dimensions{};
+		raylib::Color slotCol{};
+
+		//std::shared_ptr<ECS::Entity> uptrItem{};
+
+		raylib::Vector2 position{};
+
+		
+	};
+
+
+	SlotDef slotCore{ SLOT_IMPL::ACTIVE, SLOT_STATE::STATE_EMPTY, {40.f, 40.f}, {0, 0, 0, 50}, {0.f, 0.f} };
+	std::vector<SlotDef> slotsWeapon{};
+	std::vector<SlotDef> slotsAmmo{};
+	std::vector<SlotDef> slotsInv{};
+	
+	raylib::Rectangle inventoryBase{ G::screenWidth - INVENTORY_WIDTH, 0, INVENTORY_WIDTH, G::screenHeight };
+
+	Inventory() {
+		addSlotWeapon();
+		addSlotWeapon();
+		addSlotWeapon();
+		addSlotWeapon();
+	}
+private:
+	void addSlotWeapon() {
+		slotsWeapon.push_back({ SLOT_IMPL::ACTIVE, SLOT_STATE::STATE_EMPTY, { 30.f, 30.f }, { 0, 0, 0, 50 }, { 0.f, 0.f } });
+	}
+	
+	void DrawSlot(const SlotDef& slot) {
+		raylib::Rectangle(slot.position, slot.dimensions).Draw(slot.slotCol);
+	}
+public:
+	void SetSlotsPos() {
+		uint16_t r = 40.0f;
+		slotCore.position = raylib::getCenterRect(inventoryBase);
+
+		for (auto it = slotsWeapon.begin(); it != slotsWeapon.end(); ++it) {
+			auto i = std::distance(slotsWeapon.begin(), it);
+			float angle = DEG2RAD * (static_cast<float>(i) * 360.0f / static_cast<float>(slotsWeapon.size()));
+			
+			(*it).position = raylib::Vector2{ r * cosf(angle), r * sinf(angle) } + raylib::getCenterRect(inventoryBase);
+		}
+	}
+
+	void DrawSlots() {
+		inventoryBase.Draw({ 0, 0, 0, 100 });
+		DrawSlot(slotCore);
+		for (auto const& slot : slotsWeapon) {
+			DrawSlot(slot);
+		}
+	}
 };
 
 struct Bullet {
@@ -112,19 +177,38 @@ struct Enemy {
 */
 struct Damage {
 	enum class DAMAGE_TYPE {
-		NORMAL = 0,
-		EXPLOSIVE,
-		PENETRATION
+		PHYSICAL         = 0,
+		EXPLOSIVE        = 1,
+		PENETRATION      = 2,
+		FIRE             = 3,
+		LIGHTNING        = 4,
+		POISON           = 5,
+		RADIANT          = 6,
+		COLD             = 7,
+		ENERGY           = 8
 	};
 
 	float damage;//1
 	float damageOnContact;//2
+	DAMAGE_TYPE damageType{};//3
 };
 
 struct upgDebuff {
 	enum class DEBUFF_TYPES {
-		BLEED = 0,
-		BURN,
+		BLEED            = 0,
+		BURN             = 1,
+		CHILL            = 2,
+		FROSTBITE        = 3,
+		GLITTER          = 4,
+		JUDGMENT         = 5,
+		NECROSIS         = 6,
+		NETTLES          = 7,
+		POSION           = 8,
+		RUPTURE          = 9,
+		SCORCH           = 10,
+		SHOCK            = 11,
+		TOXIC            = 12,
+		ZAP              = 13
 	};
 
 	bool isDamageOverTime;
@@ -197,6 +281,7 @@ struct MovmentAI {
 	bool DistanceH;
 	bool DistanceW;
 
+
 	void chase(const raylib::Vector2& pos, const raylib::Vector2& posToChase, raylib::Vector2& velocity, float& angle, float speed, float seeRadius = std::numeric_limits<float>::infinity()) {
 		float distance = Vector2Distance(pos, posToChase);
 		if (distance <= seeRadius) {
@@ -213,19 +298,19 @@ struct MovmentAI {
 	}
 
 	/**
-	* @brief sinusoidal pattern
-	* @param params -  0 for maxX, 1 for maxY
+	* @brief a * sin (x * PI / b)
+	* @param params -  0 for b, 1 for a
 	*/
 	static inline double sinwaveExactFunc(double x, std::vector<float> params) {
 		return params.at(1) * sinf(x * (PI / params.at(0)));
 	}
 
 	/**
-	* @brief y = a * sin (b)
+	* @brief y = a * sin (xb)
 	* @param params -  0 for b, 1 for a
 	*/
 	static inline double sinwaveFunc(double x, std::vector<float> params) {
-		return params.at(1) * sinf(x * params.at(0));
+		return params.at(1) * sinf(static_cast<float>(x) * params.at(0));
 	}
 
 	/**
@@ -307,6 +392,8 @@ struct MovmentAI {
 	/**
 	* @brief makes bullet follow certain path
 	* @brief first argument of params must by maxX
+	* @brief still in development
+	* TODO
 	*/
 	void moveInLineOfFuncAndGoBack(float speed, ECS::Entity anchor, std::vector<float> params, raylib::RealFunc f, raylib::Vector2 whereToDestroy) {
 		auto& born = G::gCoordinator.GetComponent<JustBorn>(anchor);
@@ -383,8 +470,15 @@ public:
 		for (auto const& entity : mEntities) {
 			auto& rigidBody = G::gCoordinator.GetComponent<RigidBody>(entity);
 			auto& transform = G::gCoordinator.GetComponent<Transforms>(entity);
-
 			
+			rigidBody.hitbox.hitboxRect.SetX(transform.position.x - 0.5f * (rigidBody.hitbox.hitboxRect.GetWidth()));
+			rigidBody.hitbox.hitboxRect.SetY(transform.position.y - 0.5f * (rigidBody.hitbox.hitboxRect.GetHeight()));
+			
+
+			if (G::debugMode) {
+				rigidBody.hitbox.hitboxRect.DrawLines(rigidBody.hitbox.hitboxColor);
+			}
+
 			transform.position += rigidBody.velocity * dt;
 			rigidBody.velocity += rigidBody.acceleration;
 		}
@@ -397,10 +491,6 @@ public:
 		for (auto const& entity : mEntities) {
 			auto& transform = G::gCoordinator.GetComponent<Transforms>(entity);
 			auto& sprite = G::gCoordinator.GetComponent<Sprite>(entity);
-			auto& rigidBody = G::gCoordinator.GetComponent<RigidBody>(entity);
-
-			rigidBody.hitbox.hitboxRect.SetX(transform.position.x - 0.5f * (rigidBody.hitbox.hitboxRect.GetWidth()));
-			rigidBody.hitbox.hitboxRect.SetY(transform.position.y - 0.5f * (rigidBody.hitbox.hitboxRect.GetHeight()));
 
 			sprite.sprite.Draw(
 				raylib::Rectangle(0.0f, 0.0f, sprite.sprite.width, sprite.sprite.height),
@@ -409,11 +499,6 @@ public:
 				sprite.angle * RAD2DEG,
 				sprite.tint
 			);
-
-			if(G::debugMode) {
-				rigidBody.hitbox.hitboxRect.DrawLines(rigidBody.hitbox.hitboxColor);
-			}
-			//raylib::DrawText(std::to_string(entity), transform.position.x, transform.position.y, 12, raylib::Color::Black());
 
 			G::gridRect.DrawLines(raylib::Color::Blue());
 		}
@@ -695,14 +780,21 @@ struct BulletManipulationSystem : ECS::System {
 			auto& sprite = G::gCoordinator.GetComponent<Sprite>(entity);
 			auto& justBorn = G::gCoordinator.GetComponent<JustBorn>(entity);
 			auto& bullet = G::gCoordinator.GetComponent<Bullet>(entity);
-			
-			movmentAI.moveInLineOfFunc(200.0f, entity, std::vector<float>{tanf(2.f*PI)}, MovmentAI::straightLineFunc);//func neads to be zeroed to follow bornAngle path
+      
+			movmentAI.moveInLineOfFunc(200.0f, entity, std::vector<float>{500.f, 600.f}, MovmentAI::sinwaveExactFunc);//func neads to be zeroed to follow bornAngle path
 
 			if (!raylib::containsRect(G::gridRect, rigidBody.hitbox.hitboxRect)) {
 				health.health = 0.0f;
 			}
 		}
 	}
+};
+
+struct WeaponManagmentSystem : ECS::System {
+	void update() {
+
+	}
+
 };
 
 struct EntityRemovalSystem : ECS::System {

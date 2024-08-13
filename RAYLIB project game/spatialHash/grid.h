@@ -73,9 +73,9 @@ namespace spatial_hash {
 		* @param entityRect - size of entity
 		*/
 		void insert(Entity entity, Rect entityRect) {
-			auto NW = indexFromPoint<BlockIndex>(Point(static_cast<int>(entityRect.x), static_cast<int>(entityRect.y), 0), tileSizeInv);
-			auto NE = indexFromPoint<BlockIndex>(Point(static_cast<int>(entityRect.x + entityRect.width), static_cast<int>(entityRect.y), 0), tileSizeInv);
-			auto SW = indexFromPoint<BlockIndex>(Point(static_cast<int>(entityRect.x), static_cast<int>(entityRect.y + entityRect.height), 0), tileSizeInv);
+			auto NW = indexFromPoint<BlockIndex>(Point(static_cast<const float>(static_cast<int>(entityRect.x)), static_cast<const float>(static_cast<int>(entityRect.y)), 0), tileSizeInv);
+			auto NE = indexFromPoint<BlockIndex>(Point(static_cast<const float>(static_cast<int>(entityRect.x + entityRect.width)), static_cast<const float>(static_cast<int>(entityRect.y)), 0), tileSizeInv);
+			auto SW = indexFromPoint<BlockIndex>(Point(static_cast<const float>(static_cast<int>(entityRect.x)), static_cast<const float>(static_cast<int>(entityRect.y + entityRect.height)), 0), tileSizeInv);
 			
 			for (auto x = NW.x(); x <= NE.x(); x++) {
 				for (auto y = NW.y(); y <= SW.y(); y++) {
@@ -85,7 +85,7 @@ namespace spatial_hash {
 				}
 			}
 		}
-
+	
 		void remove(Entity entity, vec entityPos) {
 			
 			auto pos = indexFromPoint<BlockIndex>(Point(static_cast<int>(entityPos.x), static_cast<int>(entityPos.y), 0), tileSizeInv);
@@ -105,10 +105,9 @@ namespace spatial_hash {
 
 		std::set<Entity> query(Rect area) {
 			std::set<Entity> entityQuery;
-
-			auto NW = indexFromPoint<BlockIndex>(Point(static_cast<int>(area.x), static_cast<int>(area.y), 0), tileSizeInv);
-			auto NE = indexFromPoint<BlockIndex>(Point(static_cast<int>(area.x + area.width), static_cast<int>(area.y), 0), tileSizeInv);
-			auto SW = indexFromPoint<BlockIndex>(Point(static_cast<int>(area.x), static_cast<int>(area.y + area.height), 0), tileSizeInv);
+			auto NW = indexFromPoint<BlockIndex>(Point(static_cast<const float>(static_cast<int>(area.x)), static_cast<const float>(static_cast<int>(area.y)), 0), tileSizeInv);
+			auto NE = indexFromPoint<BlockIndex>(Point(static_cast<const float>(static_cast<int>(area.x + area.width)), static_cast<const float>(static_cast<int>(area.y)), 0), tileSizeInv);
+			auto SW = indexFromPoint<BlockIndex>(Point(static_cast<const float>(static_cast<int>(area.x)), static_cast<const float>(static_cast<int>(area.y + area.height)), 0), tileSizeInv);
 			
 			
 			for (auto x = NW.x(); x <= NE.x(); x++) {

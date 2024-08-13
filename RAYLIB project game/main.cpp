@@ -5,6 +5,7 @@
 #include "Components.h"
 #include "utils.h"
 #include "UI.h"
+#include "EventManager.h"
 
 #if defined(PLATFORM_DESKTOP)
 #define GLSL_VERSION            330
@@ -22,7 +23,8 @@ int main() {
     //TODO - TURRESTS FOR PLAYER TO TRY THESE BULLETS BEHAVIOURS - PART OF UPGRADES SYSTEM - 5
     //TODO - make script for generating code for upgrades -2
     //maybe skill tree or some shit and multiple characters
-
+    //TODO - make application class so all globals are stored in there + make abstractions so main.cpp file is very small
+    
     // Initialization
     //--------------------------------------------------------------------------------------
     G::gStack.init();
@@ -42,6 +44,8 @@ int main() {
     G::gCoordinator.RegisterComponent<Damage>();
     G::gCoordinator.RegisterComponent<TimerComponent>();
     G::gCoordinator.RegisterComponent<JustBorn>();
+    G::gCoordinator.RegisterComponent<events::IListener>();
+    G::gCoordinator.RegisterComponent<Inventory>();
 
     G::physicsSystem = G::gCoordinator.RegisterSystem<PhysicsSystem>();
 
@@ -55,7 +59,6 @@ int main() {
     ECS::Signature signature2;
     signature2.set(G::gCoordinator.GetComponentType<Transforms>());
     signature2.set(G::gCoordinator.GetComponentType<Sprite>());
-    signature2.set(G::gCoordinator.GetComponentType<RigidBody>());
     G::gCoordinator.SetSystemSignature<RenderSystem>(signature2);
 
     G::inputSystem = G::gCoordinator.RegisterSystem<InputSystem>();
@@ -102,7 +105,7 @@ int main() {
     signature7.set(G::gCoordinator.GetComponentType<Sprite>());
     signature7.set(G::gCoordinator.GetComponentType<JustBorn>());
     G::gCoordinator.SetSystemSignature<BulletManipulationSystem>(signature7);
-
+    
     G::collisionSystem = G::gCoordinator.RegisterSystem<CollisionSystem>();
 
     ECS::Signature signature8;
@@ -157,7 +160,8 @@ int main() {
         });
     G::gCoordinator.AddComponent<TimerComponent>(G::player, TimerComponent{});
     ComponentCommons::addComponent<Damage>(G::player, 5, 5);
-
+    G::gCoordinator.AddComponent<Inventory>(G::player, Inventory{});
+    
     auto& t = G::gCoordinator.GetComponent<RigidBody>(G::player);
     spatial_hash::gGird.insert(G::player, t.hitbox.hitboxRect);
 
@@ -185,7 +189,7 @@ int main() {
         //----------------------------------------------------------------------------------
         
     }
-    
+
     G::playerTexture.Unload();
     G::enemyTexture.Unload();
     G::playerBulletTexture1.Unload();
