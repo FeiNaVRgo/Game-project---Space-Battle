@@ -46,6 +46,8 @@ int main() {
     G::gCoordinator.RegisterComponent<JustBorn>();
     G::gCoordinator.RegisterComponent<events::IListener>();
     G::gCoordinator.RegisterComponent<Inventory>();
+    G::gCoordinator.RegisterComponent<WeaponMini>();
+    G::gCoordinator.RegisterComponent<WeaponNormal>();
 
     G::physicsSystem = G::gCoordinator.RegisterSystem<PhysicsSystem>();
 
@@ -122,6 +124,14 @@ int main() {
     signature9.set(G::gCoordinator.GetComponentType<RigidBody>());
     signature9.set(G::gCoordinator.GetComponentType<Sprite>());
     G::gCoordinator.SetSystemSignature<EntityRemovalSystem>(signature9);
+
+    G::weaponSystem = G::gCoordinator.RegisterSystem<WeaponSystem>();
+
+    ECS::Signature signature10;
+    signature10.set(G::gCoordinator.GetComponentType<WeaponMini>());
+    signature10.set(G::gCoordinator.GetComponentType<Transforms>());
+    signature10.set(G::gCoordinator.GetComponentType<Sprite>());
+    G::gCoordinator.SetSystemSignature<WeaponSystem>(signature10);
 
     #pragma endregion initialization of components and systems
     

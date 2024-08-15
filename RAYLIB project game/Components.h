@@ -13,6 +13,7 @@
 #include "GeometryCalc.h"
 #include "Coroutines.h"
 #include "EntityIds.h"
+#include "./Weapons/Weapons.h"
 
 #define INVENTORY_WIDTH 200
 
@@ -91,7 +92,6 @@ struct Health {
 };
 
 struct PlayerSpecific {
-	using Weapon = ECS::Entity;
 	float dash;//1
 };
 
@@ -113,15 +113,13 @@ struct Inventory {
 		raylib::Vector2 dimensions{};
 		raylib::Color slotCol{};
 
-		//std::shared_ptr<ECS::Entity> uptrItem{};
+		std::shared_ptr<ECS::Entity> uptrItem{};
 
 		raylib::Vector2 position{};
-
-		
 	};
 
 
-	SlotDef slotCore{ SLOT_IMPL::ACTIVE, SLOT_STATE::STATE_EMPTY, {40.f, 40.f}, {0, 0, 0, 50}, {0.f, 0.f} };
+	SlotDef slotCore{ SLOT_IMPL::ACTIVE, SLOT_STATE::STATE_EMPTY, {30.f, 30.f}, {0, 0, 0, 50}, nullptr, { 0.f, 0.f } };
 	std::vector<SlotDef> slotsWeapon{};
 	std::vector<SlotDef> slotsAmmo{};
 	std::vector<SlotDef> slotsInv{};
@@ -129,37 +127,115 @@ struct Inventory {
 	raylib::Rectangle inventoryBase{ G::screenWidth - INVENTORY_WIDTH, 0, INVENTORY_WIDTH, G::screenHeight };
 
 	Inventory() {
-		addSlotWeapon();
-		addSlotWeapon();
-		addSlotWeapon();
-		addSlotWeapon();
+		populateWeapons();
+		populateInventory();
+
+		SetSlotsPos();
 	}
 private:
+	void populateWeapons() {
+		for (int i = 0; i < 4; i++) {
+			addSlotWeapon();
+		}
+	}
+
+	void populateInventory() {
+		for (int i = 0; i < 12; i++) {
+			addInventorySlot();
+	    }
+	}
+
+	void addInventorySlot() {
+		slotsInv.push_back({ SLOT_IMPL::NONACTIVE, SLOT_STATE::STATE_EMPTY, { 30.0f, 30.0f }, { 0, 0, 0, 50 }, nullptr, { 0.f, 0.f } });
+	}
+
 	void addSlotWeapon() {
-		slotsWeapon.push_back({ SLOT_IMPL::ACTIVE, SLOT_STATE::STATE_EMPTY, { 30.f, 30.f }, { 0, 0, 0, 50 }, { 0.f, 0.f } });
+		slotsWeapon.push_back({ SLOT_IMPL::ACTIVE, SLOT_STATE::STATE_EMPTY, { 30.f, 30.f }, { 0, 0, 0, 50 }, nullptr, { 0.f, 0.f } });
 	}
 	
 	void DrawSlot(const SlotDef& slot) {
 		raylib::Rectangle(slot.position, slot.dimensions).Draw(slot.slotCol);
 	}
-public:
+
+	void DrawSlotOutline(const SlotDef& slot) {
+		raylib::Rectangle(slot.position, slot.dimensions).DrawLines(slot.slotCol);//TODO --diffrent colors for outline
+	}
+
+	void DrawVecSlot(const std::vector<SlotDef>& vecSlot, bool drawOutline, bool drawSlot = true) {
+		for (const auto& slot : vecSlot) {
+			if (drawSlot) {
+				DrawSlot(slot);
+			}
+
+			if (drawOutline) {
+				DrawSlotOutline(slot);
+			}
+		}
+	}
+
 	void SetSlotsPos() {
-		uint16_t r = 40.0f;
-		slotCore.position = raylib::getCenterRect(inventoryBase);
+		uint16_t r = 70.0f;
+		slotCore.position = raylib::getCenterRect(inventoryBase) - slotCore.dimensions / 2.0f;
 
 		for (auto it = slotsWeapon.begin(); it != slotsWeapon.end(); ++it) {
 			auto i = std::distance(slotsWeapon.begin(), it);
 			float angle = DEG2RAD * (static_cast<float>(i) * 360.0f / static_cast<float>(slotsWeapon.size()));
+		
+			it->position = raylib::Vector2{ std::floor(r * cosf(angle)), std::floor(r * sinf(angle)) } + raylib::getCenterRect(inventoryBase) - it->dimensions / 2.0f;
+		}
+
+		float totalWidth = 0.f;
+		float y = 0.f;
+		float maxWidth = 0.f;//for later centering of position in invBase
+		for (auto it = slotsInv.begin(); it != slotsInv.end(); ++it) {
+			//auto i = std::distance(slotsInv.begin(), it); //just in case when i want to change something
 			
-			(*it).position = raylib::Vector2{ r * cosf(angle), r * sinf(angle) } + raylib::getCenterRect(inventoryBase);
+			if (totalWidth + it->dimensions.x >= INVENTORY_WIDTH) {//without additiion it fucks up
+				maxWidth = totalWidth;
+				totalWidth = 0.0f;
+				y++;
+			}
+			
+			it->position = { totalWidth, y * it->dimensions.y };
+			totalWidth += it->dimensions.x;
+		}
+
+		for (auto& slot : slotsInv) {
+			slot.position.x += inventoryBase.GetPosition().x + (INVENTORY_WIDTH - maxWidth) / 2.0f;
+			slot.position.y += slotCore.position.y + r + 60.f;
 		}
 	}
 
-	void DrawSlots() {
+	void interactWithSlot(SlotDef slot) {
+		if (raylib::Rectangle(slot.position, slot.dimensions).CheckCollision(GetMousePosition()) && IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_LEFT)) {
+			if (slot.uptrItem != nullptr) {
+				auto& miniWeapon = G::gCoordinator.GetComponent<WeaponMini>(*slot.uptrItem);
+				miniWeapon.isSelected = true;
+
+				slot.uptrItem = nullptr;
+			}
+		}
+	}
+public:
+	void DrawAllSlots() {
+		if (G::debugMode) {
+			auto v = raylib::getCenterRect(inventoryBase);
+			DrawCircleLines(v.x, v.y, 70.0f, RED);
+		}
+
 		inventoryBase.Draw({ 0, 0, 0, 100 });
 		DrawSlot(slotCore);
-		for (auto const& slot : slotsWeapon) {
-			DrawSlot(slot);
+		DrawVecSlot(slotsWeapon, false);
+		DrawVecSlot(slotsInv, true);
+	}
+
+	void interactWithSlots() {
+		interactWithSlot(slotCore);
+		for (auto& slot : slotsWeapon) {
+			interactWithSlot(slot);
+		}
+		for (auto& slot : slotsInv) {
+			interactWithSlot(slot);
 		}
 	}
 };
@@ -790,11 +866,48 @@ struct BulletManipulationSystem : ECS::System {
 	}
 };
 
-struct WeaponManagmentSystem : ECS::System {
+struct WeaponSystem : ECS::System {
+	using WeaponmMini = ECS::Entity;
+
 	void update() {
+		for (auto& const entity : mEntities) {
+			auto& miniWeapon = G::gCoordinator.GetComponent<WeaponMini>(entity);
+			auto& transforms = G::gCoordinator.GetComponent<Transforms>(entity);
+			auto& sprite = G::gCoordinator.GetComponent<Sprite>(entity);
+			
+			if (miniWeapon.isSelected) {
+				transforms.position = GetMousePosition();
+			}
+		}
+	}
+private:
+	static inline void createWeaponNormalCanon(WeaponMini mini) {
 
 	}
 
+	static inline void createWeaponMiniCanon() {
+		auto const& canonMini = G::gCoordinator.CreateEntity();
+		auto& inventory = G::gCoordinator.GetComponent<Inventory>(G::player);
+
+		G::gCoordinator.AddComponent<WeaponMini>(canonMini, WeaponMini{
+			.isHeld = false,
+			.isEquipped = false,
+			.rarity = ID_WEAPON_RARITY::COMMON,
+			.name = "OMNIPOTENT CANON",
+			.description = "This canon transcendents all of universe"
+			});
+		G::gCoordinator.AddComponent<Sprite>(canonMini, Sprite{
+			.sprite = G::weapon_mini_canon,
+			.angle = 0.0f,
+			.tint {255, 255, 255, 255},
+			.origin = raylib::Vector2(G::weapon_mini_canon.width * 0.5f, G::weapon_mini_canon.height * 0.5f)
+			});
+		//TODO : position will be determinet form inventory slot
+		//G::gCoordinator.AddComponent<Transforms>(canonMini, Transforms{
+			//.position = {}
+			//});
+
+	}
 };
 
 struct EntityRemovalSystem : ECS::System {

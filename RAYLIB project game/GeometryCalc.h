@@ -24,7 +24,11 @@ namespace raylib {
 	}
 
 	inline Vector2 getCenterRect(const raylib::Rectangle& r1) noexcept {
-		return Vector2(r1.x, r1.y) + Vector2(r1.width / 2.0f, r1.height / 2.0f);
+		return r1.GetPosition() + r1.GetSize() / 2.0f;
+	}
+
+	inline Vector2 getCenterRect(const raylib::Vector2& pos, const raylib::Vector2& dim) noexcept {
+		return pos + dim / 2.0f;
 	}
 
 	inline Vector2 getSizeRect(const raylib::Rectangle& r1) noexcept {

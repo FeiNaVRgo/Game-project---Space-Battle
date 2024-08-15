@@ -29,6 +29,7 @@ void StackFunctions::PlayGame() {
         std::any_cast<std::shared_ptr<CollisionSystem>>(G::collisionSystem)->update();
         std::any_cast<std::shared_ptr<BulletManipulationSystem>>(G::bulletManipulationSystem)->update();
         std::any_cast<std::shared_ptr<HealthSystem>>(G::healthSystem)->update();
+        std::any_cast<std::shared_ptr<WeaponSystem>>(G::weaponSystem)->update();
         std::any_cast<std::shared_ptr<EntityRemovalSystem>>(G::entityRemovalSystem)->update();
     }
     //GLOBALS::gBloom.EndMode();

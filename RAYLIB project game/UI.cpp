@@ -49,8 +49,8 @@ void UIFunctions::pause() {
 void UIFunctions::inventory() {
 	EndMode2D();
 	auto& inv = G::gCoordinator.GetComponent<Inventory>(G::player);
-	inv.SetSlotsPos();
-	inv.DrawSlots();
+
+	inv.DrawAllSlots();
 	
 
 	if (IsKeyPressed(KeyboardKey::KEY_R)) {

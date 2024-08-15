@@ -47,6 +47,7 @@ namespace G {
 	inline std::any bulletManipulationSystem;
 	inline std::any collisionSystem;
 	inline std::any entityRemovalSystem;
+	inline std::any weaponSystem;
 	inline int zoomMode = 0;
 	inline bool exitWindow = false;
 	inline raylib::Rectangle playerBoundingBoxForBullets;
