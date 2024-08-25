@@ -12,7 +12,8 @@ enum class FUNC_UI_ID {
 	ID_GENERAL_UI         = 1,
 	ID_PAUSE              = 2,
 	ID_INVENTORY          = 3,
-	ID_INVENTORY_STATS    = 4
+	ID_INVENTORY_STATS    = 4,
+	ID_UPGRADES           = 5
 };
 
 struct UIFunctions {
@@ -20,6 +21,7 @@ struct UIFunctions {
 	static void pause();
 	static void inventory();
 	static void inventoryStats();
+	static void procUpgrades();
 };
 
 template<typename Key = FUNC_UI_ID, typename Item = std::function<void()>>

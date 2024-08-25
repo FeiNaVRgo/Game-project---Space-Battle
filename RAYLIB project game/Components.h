@@ -65,6 +65,7 @@ struct Sprite {
 	float angle;//2
 	raylib::Color tint;//3
 	raylib::Vector2 origin;//4
+	bool isDependent = false;//5
 	
 	~Sprite() {
 		//sprite.Unload();
@@ -185,7 +186,7 @@ private:
 		}
 
 		float totalWidth = 0.f;
-		float y = 0.f;
+		float y = 0.f;//for the current level of lines in inventory
 		float maxWidth = 0.f;//for later centering of position in invBase
 		for (auto it = slotsInv.begin(); it != slotsInv.end(); ++it) {
 			//auto i = std::distance(slotsInv.begin(), it); //just in case when i want to change something
@@ -217,6 +218,27 @@ private:
 		}
 	}
 public:
+	void DrawSprites() {
+		for (auto& slot : slotsInv) {
+			if (slot.uptrItem != nullptr) {
+				auto sprite = G::gCoordinator.GetComponent<Sprite>(*slot.uptrItem);
+				auto transform = G::gCoordinator.GetComponent<Transforms>(*slot.uptrItem);
+
+				EndMode2D();
+
+				sprite.sprite.Draw(
+					raylib::Rectangle(0.0f, 0.0f, sprite.sprite.width, sprite.sprite.height),
+					raylib::Rectangle(transform.position.x, transform.position.y, sprite.sprite.width, sprite.sprite.height),
+					raylib::Vector2(sprite.origin),
+					sprite.angle * RAD2DEG,
+					sprite.tint
+				);
+
+				BeginMode2D(G::camera);
+			}
+		}
+	}
+
 	void DrawAllSlots() {
 		if (G::debugMode) {
 			auto v = raylib::getCenterRect(inventoryBase);
@@ -568,16 +590,75 @@ public:
 			auto& transform = G::gCoordinator.GetComponent<Transforms>(entity);
 			auto& sprite = G::gCoordinator.GetComponent<Sprite>(entity);
 
-			sprite.sprite.Draw(
-				raylib::Rectangle(0.0f, 0.0f, sprite.sprite.width, sprite.sprite.height),
-				raylib::Rectangle(transform.position.x, transform.position.y, sprite.sprite.width, sprite.sprite.height),
-				raylib::Vector2(sprite.origin),
-				sprite.angle * RAD2DEG,
-				sprite.tint
-			);
+			if (!sprite.isDependent) {
+				
+				sprite.sprite.Draw(
+					raylib::Rectangle(0.0f, 0.0f, sprite.sprite.width, sprite.sprite.height),
+					raylib::Rectangle(transform.position.x, transform.position.y, sprite.sprite.width, sprite.sprite.height),
+					raylib::Vector2(sprite.origin),
+					sprite.angle * RAD2DEG,
+					sprite.tint
+				);
+			}
 
 			G::gridRect.DrawLines(raylib::Color::Blue());
 		}
+	}
+};
+
+struct WeaponSystem : ECS::System {
+	using WeaponmMini = ECS::Entity;
+
+	void update() {
+		for (auto const& entity : mEntities) {
+			auto& miniWeapon = G::gCoordinator.GetComponent<WeaponMini>(entity);
+			auto& transforms = G::gCoordinator.GetComponent<Transforms>(entity);
+			auto& sprite = G::gCoordinator.GetComponent<Sprite>(entity);
+
+			if (miniWeapon.isSelected) {
+				transforms.position = GetMousePosition();
+			}
+		}
+	}
+
+	static inline void createWeaponNormalCanon(WeaponMini mini) {
+
+	}
+
+	static inline void createWeaponMiniCanon() {
+		auto const& canonMini = G::gCoordinator.CreateEntity();
+		auto& inventory = G::gCoordinator.GetComponent<Inventory>(G::player);
+
+		G::gCoordinator.AddComponent<WeaponMini>(canonMini, WeaponMini{
+			.isHeld = false,
+			.isEquipped = false,
+			.rarity = ID_WEAPON_RARITY::COMMON,
+			.name = "OMNIPOTENT CANON",
+			.description = "This canon transcendents all of universe"
+			});
+		G::gCoordinator.AddComponent<Sprite>(canonMini, Sprite{
+			.sprite = G::weapon_mini_canon,
+			.angle = 0.0f,
+			.tint {255, 255, 255, 255},
+			.origin = raylib::Vector2(G::weapon_mini_canon.GetSize()) * 0.5f,
+			.isDependent = true
+			});
+
+		raylib::Vector2 pos{};
+		for (auto& slot : inventory.slotsInv) {
+			if (slot.uptrItem == nullptr) {
+				pos = slot.position + raylib::Vector2(G::weapon_mini_canon.GetSize()) * 0.5f;
+				slot.uptrItem = std::make_shared<ECS::Entity>(canonMini);
+				break;
+			}
+		}
+
+		G::gCoordinator.AddComponent<Transforms>(canonMini, Transforms{
+			.position = pos,
+			.rotation = {0.0f, 0.0f},
+			.scale = {1.0f, 1.0f}
+			});
+
 	}
 };
 
@@ -610,13 +691,40 @@ public:
 
 			G::gPlayerPos = transform.position;
 
-			if (IsKeyPressed(KeyboardKey::KEY_SPACE) && pSpecific.dash <= 1.0f) {
+			if (IsKeyPressed(KeyboardKey::KEY_C)) {
+				WeaponSystem::createWeaponMiniCanon();
+			}
+
+			if (IsKeyPressed(KeyInputs::DASH) && pSpecific.dash <= 1.0f) {
 				pSpecific.dash = 5.0f;
 			}
 
 			if (pSpecific.dash > 1.0f) {
 				pSpecific.dash -= GetFrameTime() * 6.0f;
 			}
+
+			if (IsKeyDown(KeyInputs::BREAKS)) {
+				if (rigidBody.velocity.x >= 2.f) {
+					rigidBody.velocity.x--;
+				}
+				else if (rigidBody.velocity.x < 2.f) {
+					rigidBody.velocity.x++;
+				}
+				else if (rigidBody.velocity.x <= 2.f && rigidBody.velocity.x >= -2.f) {
+					rigidBody.velocity.x = 0.f;
+				}
+
+				if (rigidBody.velocity.y >= 2.f) {
+					rigidBody.velocity.y--;
+				}
+				else if (rigidBody.velocity.y < 2.f) {
+					rigidBody.velocity.y++;
+				}
+				else if (rigidBody.velocity.y <= 2.f && rigidBody.velocity.y >= -2.f) {
+					rigidBody.velocity.y = 0.f;
+				}
+			}
+
 
 			if (raylib::IsKeyOrMouseDown(KeyInputs::FLY)) {
 				auto m_v = GetScreenToWorld2D(GetMousePosition(), G::camera);
@@ -774,59 +882,61 @@ struct EnemySpawningSystem : public ECS::System{
 			auto& pSpecific = G::gCoordinator.GetComponent<PlayerSpecific>(entity);
 			
 			if (G::gEnemyCounter == 0) {
-				G::gLevel++;
-				G::gEnemyCounter = G::gLevel;
+				if (IsKeyPressed(KeyInputs::NEXT_WAVE) || G::gLevel == 0) {
+					G::gLevel++;
+					G::gEnemyCounter = G::gLevel;
 
-				raylib::Vector2 vP = G::gPlayerPos;
-				std::uniform_int_distribution distribX(static_cast<int>(vP.x) - 100, static_cast<int>(vP.x) + 100);
-				std::uniform_int_distribution distribY(static_cast<int>(vP.y) - 100, static_cast<int>(vP.y) + 100);
+					raylib::Vector2 vP = G::gPlayerPos;
+					std::uniform_int_distribution distribX(static_cast<int>(vP.x) - 100, static_cast<int>(vP.x) + 100);
+					std::uniform_int_distribution distribY(static_cast<int>(vP.y) - 100, static_cast<int>(vP.y) + 100);
 
-				for (int i = 0; i < G::gEnemyCounter; i++) {
-					Vector2 v = { distribX(gen), distribY(gen) };
+					for (int i = 0; i < G::gEnemyCounter; i++) {
+						Vector2 v = { distribX(gen), distribY(gen) };
 
- 					while (Vector2Distance(vP, v) < 70 || !G::gridRect.CheckCollision(v)) {
-						v = { (float)distribX(gen), (float)distribY(gen) };
+						while (Vector2Distance(vP, v) < 70 || !G::gridRect.CheckCollision(v)) {
+							v = { (float)distribX(gen), (float)distribY(gen) };
+						}
+
+						ECS::Entity entity1 = G::gCoordinator.CreateEntity();
+						G::gCoordinator.AddComponent<Transforms>(entity1, Transforms{
+							.position = raylib::Vector2(v),
+							.rotation = raylib::Vector2(0.0f, 0.0f),
+							.scale = raylib::Vector2(1.0f, 1.0f)
+							});
+						G::gCoordinator.AddComponent<RigidBody>(entity1, RigidBody{
+							.velocity = raylib::Vector2(0.0f, 0.0f),
+							.acceleration = raylib::Vector2(0.0f, 0.0f),
+							.hitbox = {{0.0f, 0.0f, 18.0f, 18.0f}, raylib::Color::Red()},
+							.isColliding = false,
+							.onWhatSideIsColliding = {false ,false ,false ,false }
+							});
+						G::gCoordinator.AddComponent<Sprite>(entity1, Sprite{
+							.sprite = G::enemyTexture,
+							.angle = 0.0f,
+							.tint = {255, 255, 255, 255},
+							.origin = raylib::Vector2(G::enemyTexture.width * 0.5f, G::enemyTexture.height * 0.5f)
+							});
+						G::gCoordinator.AddComponent<Health>(entity1, Health{
+							.maxHealth = 30.0f,
+							.health = 30.0f,
+							.isDamaged = false,
+							.frameImmunityTime = 10,
+							.healthToSubstract = 0.0f,
+							.toBeDamaged = false
+							});
+						G::gCoordinator.AddComponent<Enemy>(entity1, Enemy{
+
+							});
+						ComponentCommons::addComponent<MovmentAI>(entity1, false, false);
+						G::gCoordinator.AddComponent<EntitySpecific>(entity1, EntitySpecific{
+						.id = ENTITY_ID::ENEMY_ID
+							});
+						G::gCoordinator.AddComponent<TimerComponent>(entity1, TimerComponent{});
+						ComponentCommons::addComponent<Damage>(entity1, 5, 5);
+
+						auto& t = G::gCoordinator.GetComponent<RigidBody>(entity1);
+						spatial_hash::gGird.insert(entity1, t.hitbox.hitboxRect);
 					}
-
-					ECS::Entity entity1 = G::gCoordinator.CreateEntity();
-					G::gCoordinator.AddComponent<Transforms>(entity1, Transforms{
-						.position = raylib::Vector2(v),
-						.rotation = raylib::Vector2(0.0f, 0.0f),
-						.scale = raylib::Vector2(1.0f, 1.0f)
-						});
-					G::gCoordinator.AddComponent<RigidBody>(entity1, RigidBody{
-						.velocity = raylib::Vector2(0.0f, 0.0f),
-						.acceleration = raylib::Vector2(0.0f, 0.0f),
-						.hitbox = {{0.0f, 0.0f, 18.0f, 18.0f}, raylib::Color::Red()},
-						.isColliding = false,
-						.onWhatSideIsColliding = {false ,false ,false ,false }
-						});
-					G::gCoordinator.AddComponent<Sprite>(entity1, Sprite{
-						.sprite = G::enemyTexture,
-						.angle = 0.0f,
-						.tint = {255, 255, 255, 255},
-						.origin = raylib::Vector2(G::enemyTexture.width * 0.5f, G::enemyTexture.height * 0.5f)
-						});
-					G::gCoordinator.AddComponent<Health>(entity1, Health{
-						.maxHealth = 30.0f,
-						.health = 30.0f,
-						.isDamaged = false,
-						.frameImmunityTime = 10,
-						.healthToSubstract = 0.0f,
-						.toBeDamaged = false
-						});
-					G::gCoordinator.AddComponent<Enemy>(entity1, Enemy{
-
-						});
-					ComponentCommons::addComponent<MovmentAI>(entity1, false, false);
-					G::gCoordinator.AddComponent<EntitySpecific>(entity1, EntitySpecific{
-					.id = ENTITY_ID::ENEMY_ID
-						});
-					G::gCoordinator.AddComponent<TimerComponent>(entity1, TimerComponent{});
-					ComponentCommons::addComponent<Damage>(entity1, 5, 5);
-
-					auto& t = G::gCoordinator.GetComponent<RigidBody>(entity1);
-					spatial_hash::gGird.insert(entity1, t.hitbox.hitboxRect);
 				}
 			}
 		}
@@ -866,49 +976,6 @@ struct BulletManipulationSystem : ECS::System {
 	}
 };
 
-struct WeaponSystem : ECS::System {
-	using WeaponmMini = ECS::Entity;
-
-	void update() {
-		for (auto& const entity : mEntities) {
-			auto& miniWeapon = G::gCoordinator.GetComponent<WeaponMini>(entity);
-			auto& transforms = G::gCoordinator.GetComponent<Transforms>(entity);
-			auto& sprite = G::gCoordinator.GetComponent<Sprite>(entity);
-			
-			if (miniWeapon.isSelected) {
-				transforms.position = GetMousePosition();
-			}
-		}
-	}
-private:
-	static inline void createWeaponNormalCanon(WeaponMini mini) {
-
-	}
-
-	static inline void createWeaponMiniCanon() {
-		auto const& canonMini = G::gCoordinator.CreateEntity();
-		auto& inventory = G::gCoordinator.GetComponent<Inventory>(G::player);
-
-		G::gCoordinator.AddComponent<WeaponMini>(canonMini, WeaponMini{
-			.isHeld = false,
-			.isEquipped = false,
-			.rarity = ID_WEAPON_RARITY::COMMON,
-			.name = "OMNIPOTENT CANON",
-			.description = "This canon transcendents all of universe"
-			});
-		G::gCoordinator.AddComponent<Sprite>(canonMini, Sprite{
-			.sprite = G::weapon_mini_canon,
-			.angle = 0.0f,
-			.tint {255, 255, 255, 255},
-			.origin = raylib::Vector2(G::weapon_mini_canon.width * 0.5f, G::weapon_mini_canon.height * 0.5f)
-			});
-		//TODO : position will be determinet form inventory slot
-		//G::gCoordinator.AddComponent<Transforms>(canonMini, Transforms{
-			//.position = {}
-			//});
-
-	}
-};
 
 struct EntityRemovalSystem : ECS::System {
 	void update() {

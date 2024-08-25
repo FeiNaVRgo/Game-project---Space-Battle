@@ -140,6 +140,12 @@ void StackFunctions::SettingsKeyBoard() {
         RED,
         raylib::Text("Inventory: " + raylib::KeyInputToChar(KeyInputs::INVENTORY), 20, BEIGE, GetFontDefault(), 1.0f)
     );
+
+    FunctionalBox fBrk(
+        { 20.0f, 70.0f },
+        RED,
+        raylib::Text("Break: " + raylib::KeyInputToChar(KeyInputs::BREAKS), 20, BEIGE, GetFontDefault(), 1.0f)
+    );
  
     if (fShoot.update()) {
         fShoot.changeTextOnInput(KeyInputs::SHOOT);
@@ -149,6 +155,9 @@ void StackFunctions::SettingsKeyBoard() {
     }
     if (fInv.update()) {
         fInv.changeTextOnInput(KeyInputs::INVENTORY);
+    }
+    if (fBrk.update()) {
+        fBrk.changeTextOnInput(KeyInputs::BREAKS);
     }
 
     if (IsKeyPressed(KeyboardKey::KEY_BACKSPACE)) {

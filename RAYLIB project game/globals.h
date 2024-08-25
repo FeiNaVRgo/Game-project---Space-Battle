@@ -1,5 +1,5 @@
 #pragma once
-#include <src\raylib-cpp.hpp>
+#include <src/raylib-cpp.hpp>
 #include <any>
 #include "ECS.h"
 #include "Timer.h"
@@ -18,6 +18,9 @@ namespace KeyInputs{
 	inline uint16_t SHOOT = MouseButton::MOUSE_BUTTON_LEFT;
 	inline uint16_t FLY = KeyboardKey::KEY_W;
 	inline uint16_t INVENTORY = KeyboardKey::KEY_E;
+	inline uint16_t BREAKS = KeyboardKey::KEY_R;
+	inline uint16_t DASH = KeyboardKey::KEY_SPACE;
+	inline uint16_t NEXT_WAVE = KeyboardKey::KEY_ENTER;
 }
 
 namespace G {

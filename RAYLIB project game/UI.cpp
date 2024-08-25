@@ -51,7 +51,7 @@ void UIFunctions::inventory() {
 	auto& inv = G::gCoordinator.GetComponent<Inventory>(G::player);
 
 	inv.DrawAllSlots();
-	
+	inv.DrawSprites();
 
 	if (IsKeyPressed(KeyboardKey::KEY_R)) {
 		using enum FUNC_UI_ID;
@@ -73,4 +73,8 @@ void UIFunctions::inventoryStats() {
 	r.Draw(RED);
 
 	BeginMode2D(G::camera);
+}
+
+void UIFunctions::procUpgrades() {
+
 }
