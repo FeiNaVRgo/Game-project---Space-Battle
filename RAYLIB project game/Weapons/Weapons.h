@@ -29,6 +29,7 @@ struct WeaponMini {
 	std::string description;//5
 
 	bool isSelected = false;
+	raylib::Vector2 posToStay{};
 };
 
 struct WeaponNormal {

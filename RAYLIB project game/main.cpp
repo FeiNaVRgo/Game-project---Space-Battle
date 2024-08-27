@@ -3,7 +3,7 @@
 #include "globals.h"
 #include "ECS.h"
 #include "Components.h"
-#include "utils.h"
+#include "utils.hpp"
 #include "UI.h"
 #include "EventManager.h"
 
@@ -137,9 +137,9 @@ int main() {
     
     G::player = G::gCoordinator.CreateEntity();
     G::gCoordinator.AddComponent<Transforms>(G::player, Transforms{
-        .position = Vector2(G::gridRect.width / 2.0f, G::gridRect.height / 2.0f),
-        .rotation = Vector2(0.0f, 0.0f),
-        .scale = Vector2(1.0f, 1.0f)
+        .position = Vector2{G::gridRect.width / 2.0f, G::gridRect.height / 2.0f},
+        .rotation = Vector2{0.0f, 0.0f},
+        .scale = Vector2{1.0f, 1.0f}
         });
     G::gCoordinator.AddComponent<RigidBody>(G::player, RigidBody{
         .velocity = {0.0f, 0.0f},
@@ -172,7 +172,7 @@ int main() {
     ComponentCommons::addComponent<Damage>(G::player, 5, 5);
     G::gCoordinator.AddComponent<Inventory>(G::player, Inventory{});
     
-    auto& t = G::gCoordinator.GetComponent<RigidBody>(G::player);
+    auto const& t = G::gCoordinator.GetComponent<RigidBody>(G::player);
     spatial_hash::gGird.insert(G::player, t.hitbox.hitboxRect);
 
     G::window.SetExitKey(KEY_NULL);

@@ -1,6 +1,6 @@
 #include "UI.h"
 #include "globals.h"
-#include "utils.h"
+#include "utils.hpp"
 #include "FunctionalBox.h"
 #include "Components.h"
 #include <src/raylib-cpp.hpp>
@@ -52,6 +52,7 @@ void UIFunctions::inventory() {
 
 	inv.DrawAllSlots();
 	inv.DrawSprites();
+	inv.InteractWithSlots();
 
 	if (IsKeyPressed(KeyboardKey::KEY_R)) {
 		using enum FUNC_UI_ID;

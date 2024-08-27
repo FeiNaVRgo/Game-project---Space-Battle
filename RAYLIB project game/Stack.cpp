@@ -1,11 +1,11 @@
-#include <src\raylib-cpp.hpp>
-#include <src\rlgl.h>
+#include <src/raylib-cpp.hpp>
+#include <src/rlgl.h>
 #include <string>
 #include "Components.h"
 #include "Stack.h"
 #include "globals.h"
 #include "FunctionalBox.h"
-#include "utils.h"
+#include "utils.hpp"
 
 void StackFunctions::PlayGame() {
     G::window.ClearBackground(raylib::Color::DarkGray());

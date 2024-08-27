@@ -1,5 +1,5 @@
 #pragma once
-#include <src\raylib-cpp.hpp>
+#include <src/raylib-cpp.hpp>
 #include <functional>
 #include <memory>
 #include <vector>

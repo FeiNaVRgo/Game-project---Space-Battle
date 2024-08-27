@@ -42,6 +42,12 @@
     <ClCompile Include="EventManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GeometryCalc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="utils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="resources\PlayerModel.png">
@@ -61,7 +67,7 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GeometryCalc.h">
+    <ClInclude Include="GeometryCalc.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="globals.h">
@@ -82,7 +88,7 @@
     <ClInclude Include="FunctionalBox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="utils.h">
+    <ClInclude Include="utils.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="spatialHash\grid.h">

@@ -148,11 +148,13 @@
     <ClCompile Include="ECS.cpp" />
     <ClCompile Include="EventManager.cpp" />
     <ClCompile Include="FunctionalBox.cpp" />
+    <ClCompile Include="GeometryCalc.cpp" />
     <ClCompile Include="spatialHash\grid.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Stack.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="UI.cpp" />
+    <ClCompile Include="utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="resources\DEFAULT_TEXTURE.png" />
@@ -168,7 +170,7 @@
     <ClInclude Include="EntityIds.h" />
     <ClInclude Include="EventManager.h" />
     <ClInclude Include="FunctionalBox.h" />
-    <ClInclude Include="GeometryCalc.h" />
+    <ClInclude Include="GeometryCalc.hpp" />
     <ClInclude Include="globals.h" />
     <ClInclude Include="spatialHash\grid.h" />
     <ClInclude Include="spatialHash\hash.h" />
@@ -176,7 +178,7 @@
     <ClInclude Include="Stack.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="UI.h" />
-    <ClInclude Include="utils.h" />
+    <ClInclude Include="utils.hpp" />
     <ClInclude Include="Weapons\Weapons.h" />
   </ItemGroup>
   <ItemGroup>
