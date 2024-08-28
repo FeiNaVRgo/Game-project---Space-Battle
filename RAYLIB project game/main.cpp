@@ -27,8 +27,6 @@ int main() {
     
     // Initialization
     //--------------------------------------------------------------------------------------
-    G::gStack.init();
-    G::gUI.init();
     #pragma region GLOBAL_COORDINATOR
     G::gCoordinator.Init();
     
@@ -136,6 +134,7 @@ int main() {
     #pragma endregion initialization of components and systems
     
     G::player = G::gCoordinator.CreateEntity();
+
     G::gCoordinator.AddComponent<Transforms>(G::player, Transforms{
         .position = Vector2{G::gridRect.width / 2.0f, G::gridRect.height / 2.0f},
         .rotation = Vector2{0.0f, 0.0f},

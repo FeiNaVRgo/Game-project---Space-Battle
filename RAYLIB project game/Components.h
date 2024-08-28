@@ -5,6 +5,7 @@
 #include <any>
 #include <numbers>
 #include <iostream>
+#include <algorithm>
 #include "ECS.h"
 #include "globals.h"
 #include "Timer.h"
@@ -14,6 +15,7 @@
 #include "Coroutines.h"
 #include "EntityIds.h"
 #include "./Weapons/Weapons.h"
+#include <DirectXCollision.h>
 
 #define INVENTORY_WIDTH 200
 
@@ -33,9 +35,7 @@ public:
 	raylib::Rectangle hitboxRect;
 	raylib::Color hitboxColor;
 
-	raylib::Vector2 getHitBoxCenter() {
-		return hitboxRect.GetPosition() + hitboxRect.GetSize() / 2.0f;
-	}
+	raylib::Vector2 getHitBoxCenter();
 };
 
 template<typename T>
@@ -115,7 +115,7 @@ struct Inventory {
 	std::vector<SlotDef> slotsWeapon{};
 	std::vector<SlotDef> slotsAmmo{};
 	std::vector<SlotDef> slotsInv{};
-
+	
 	raylib::Rectangle inventoryBase{ G::screenWidth - INVENTORY_WIDTH, 0, INVENTORY_WIDTH, G::screenHeight };
 
 	Inventory();

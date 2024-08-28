@@ -20,4 +20,5 @@ namespace raylib {
 	extern bool checkCollisionRotatedRectangles(const raylib::Rectangle r1, const raylib::Rectangle r2);
 	extern double derivative(RealFunc f, double x, std::vector<float> params);
 	extern double NewtonsMethod(RealFunc f, RealFuncDerivative d, double x0, double precision, std::vector<float> params);//dont use
+	extern float areaOfRectangle(const raylib::Rectangle& r);
 }

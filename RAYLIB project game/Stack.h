@@ -1,9 +1,12 @@
 #pragma once
 #include <src/raylib-cpp.hpp>
+#include <src/rlgl.h>
 #include <functional>
 #include <memory>
 #include <vector>
 #include <unordered_map>
+#include <string>
+
 
 enum FUNC_ID {
 	ID_MAIN_MENU,
@@ -28,29 +31,13 @@ private:
 	std::vector<uint32_t> mIdvec;
 	std::unordered_map<uint32_t, std::function<void()>> mFuncMap;
 public:
+	Stack();
+
 	//execute top element od stack
-	void execute() {
-		mFuncMap.at(mIdvec.front())();
-	}
-
+	void execute();
 	//insert element at the top of stack
-	void insert(std::function<void()> func, uint32_t id) {
-		mIdvec.emplace_back(id);
-		mFuncMap.try_emplace(id, func);
-	}
-
+	void insert(std::function<void()> func, uint32_t id);
 	//push all functions
-	void init() {
-		insert(StackFunctions::MainMenu, FUNC_ID::ID_MAIN_MENU);
-		insert(StackFunctions::Exit, FUNC_ID::ID_EXIT);
-		insert(StackFunctions::Settings, FUNC_ID::ID_SETTINGS);
-		insert(StackFunctions::PlayGame, FUNC_ID::ID_PLAY_GAME);
-		insert(StackFunctions::SettingsKeyBoard, FUNC_ID::ID_SETTINGS_KEYBOARD);
-		insert(StackFunctions::SettingsSound, FUNC_ID::ID_SETTINGS_SOUND);
-	}
-
-	void pushToTop(uint32_t id) {
-		auto it1 = std::find(mIdvec.begin(), mIdvec.end(), id);
-		std::swap(*it1, mIdvec.front());
-	}
+	void init();
+	void pushToTop(uint32_t id);
 };

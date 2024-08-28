@@ -1,13 +1,11 @@
-#include <src/raylib-cpp.hpp>
-#include <src/rlgl.h>
-#include <string>
-#include "Components.h"
 #include "Stack.h"
+
 #include "globals.h"
+#include "Components.h"
 #include "FunctionalBox.h"
 #include "utils.hpp"
 
-void StackFunctions::PlayGame() {
+inline void StackFunctions::PlayGame() {
     G::window.ClearBackground(raylib::Color::DarkGray());
     rlPushMatrix();
         rlTranslatef(0, 25 * 50, 0);
@@ -44,7 +42,7 @@ void StackFunctions::PlayGame() {
     }
 }
 
-void StackFunctions::MainMenu() {
+inline void StackFunctions::MainMenu() {
     G::window.ClearBackground(raylib::Color::DarkGray());
     FunctionalBox fPlayGame(
         {100.0f, 100.0f},
@@ -73,7 +71,7 @@ void StackFunctions::MainMenu() {
     }
 }
 
-void StackFunctions::Settings() {
+inline void StackFunctions::Settings() {
     G::window.ClearBackground(raylib::Color::DarkGray());
     FunctionalBox fKB(
         { 100.0f, 100.0f },
@@ -101,7 +99,7 @@ void StackFunctions::Settings() {
     }
 }
 
-void StackFunctions::Exit() {
+inline void StackFunctions::Exit() {
     G::window.ClearBackground(raylib::Color::DarkGray());
     FunctionalBox f1(
         { 100.0f, 100.0f },
@@ -122,7 +120,7 @@ void StackFunctions::Exit() {
     }
 }
 
-void StackFunctions::SettingsKeyBoard() {
+inline void StackFunctions::SettingsKeyBoard() {
     G::window.ClearBackground(raylib::Color::DarkGray());
     FunctionalBox fShoot(
         {20.0f, 10.0f},
@@ -165,7 +163,7 @@ void StackFunctions::SettingsKeyBoard() {
     }
 }
 
-void StackFunctions::SettingsSound() {
+inline void StackFunctions::SettingsSound() {
     G::window.ClearBackground(raylib::Color::DarkGray());
 
     FunctionalBox fSG(
@@ -192,4 +190,31 @@ void StackFunctions::SettingsSound() {
     if (IsKeyPressed(KeyboardKey::KEY_BACKSPACE)) {
         G::gStack.pushToTop(FUNC_ID::ID_SETTINGS);
     }
+}
+
+Stack::Stack() {
+    init();
+}
+
+void Stack::execute() {
+    mFuncMap.at(mIdvec.front())();
+}
+
+inline void Stack::insert(std::function<void()> func, uint32_t id) {
+    mIdvec.emplace_back(id);
+    mFuncMap.try_emplace(id, func);
+}
+
+inline void Stack::init() {
+    insert(StackFunctions::MainMenu, FUNC_ID::ID_MAIN_MENU);
+    insert(StackFunctions::Exit, FUNC_ID::ID_EXIT);
+    insert(StackFunctions::Settings, FUNC_ID::ID_SETTINGS);
+    insert(StackFunctions::PlayGame, FUNC_ID::ID_PLAY_GAME);
+    insert(StackFunctions::SettingsKeyBoard, FUNC_ID::ID_SETTINGS_KEYBOARD);
+    insert(StackFunctions::SettingsSound, FUNC_ID::ID_SETTINGS_SOUND);
+}
+
+inline void Stack::pushToTop(uint32_t id) {
+    auto it1 = std::find(mIdvec.begin(), mIdvec.end(), id);
+    std::swap(*it1, mIdvec.front());
 }

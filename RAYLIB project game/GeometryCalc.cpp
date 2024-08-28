@@ -88,3 +88,7 @@ inline double raylib::NewtonsMethod(RealFunc f, RealFuncDerivative d, double x0,
 		}
 	}
 }
+
+inline float raylib::areaOfRectangle(const raylib::Rectangle& r) {
+	return r.GetHeight() * r.GetWidth();
+}

@@ -1,5 +1,10 @@
 #include "Components.h"
 
+
+raylib::Vector2 Hitbox::getHitBoxCenter() {
+	return hitboxRect.GetPosition() + hitboxRect.GetSize() / 2.0f;
+}
+
 Sprite::~Sprite(){}
 
 void Health::drawHealthBar(const raylib::Vector2& origin, const raylib::Vector2& offsetFromOrigin) {
@@ -12,21 +17,21 @@ void Health::drawHealthBar(const raylib::Vector2& origin, const raylib::Vector2&
 void Health::drawDamageIndicator(){}
 
 Inventory::Inventory(){
-	this->populateWeapons();
-	this->populateInventory();
+	populateWeapons();
+	populateInventory();
 	
-	this->SetSlotsPos();
+	SetSlotsPos();
 }
 
 void Inventory::populateWeapons() {
 	for (int i = 0; i < 4; i++) {
-		this->addSlotWeapon();
+		addSlotWeapon();
 	}
 }
 
 void Inventory::populateInventory() {
 	for (int i = 0; i < 12; i++) {
-		this->addInventorySlot();
+		addInventorySlot();
 	}
 }
 
@@ -97,6 +102,7 @@ void Inventory::InteractWithSlot(SlotDef slot) {
 
 		if (IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_LEFT) && miniWeapon.isSelected) {
 			miniWeapon.isSelected = false;
+			miniWeapon.afterSelecting = true;
 		}
 
 		if (raylib::Rectangle(slot.position, slot.dimensions).CheckCollision(GetMousePosition()) && IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_LEFT)) {
@@ -328,7 +334,7 @@ void RenderSystem::updateSprites() {
 	for (auto const& entity : mEntities) {
 		auto& transform = G::gCoordinator.GetComponent<Transforms>(entity);
 		auto& sprite = G::gCoordinator.GetComponent<Sprite>(entity);
-
+		
 		if (!sprite.isDependent) {
 
 			sprite.sprite.Draw(
@@ -351,11 +357,42 @@ void WeaponSystem::update() {
 		auto& sprite = G::gCoordinator.GetComponent<Sprite>(entity);
 		auto& inventory = G::gCoordinator.GetComponent<Inventory>(G::player);
 
+		auto spriteRect = raylib::Rectangle(transforms.position, sprite.sprite.GetSize());
+
 		if (miniWeapon.isSelected) {
 			transforms.position = GetMousePosition();
 		}
 		else {
-			transforms.position = miniWeapon.posToStay;//TODO -- determine posToStay by current position
+		    //TODO -- determine posToStay by current position
+
+			//finding where tu put it
+			//if no intersection at the moment goes to rembered slot
+			//if intersetion above 50% goes there
+			//if intersection with more than one slot chooses one that has more tham 50% if not goes to remembered slot
+			if (miniWeapon.afterSelecting) {
+				std::vector<Inventory::SlotDef> allSlots{};
+				
+				allSlots.push_back(inventory.slotCore);
+				std::move(inventory.slotsInv.begin(), inventory.slotsInv.end(), std::back_inserter(allSlots));
+				std::move(inventory.slotsWeapon.begin(), inventory.slotsWeapon.end(), std::back_inserter(allSlots));
+				std::move(inventory.slotsAmmo.begin(), inventory.slotsAmmo.end(), std::back_inserter(allSlots));
+
+				for (auto& slot : allSlots) {
+					if (raylib::areaOfRectangle(raylib::Rectangle(slot.position, slot.dimensions).GetCollision(spriteRect)) >= 0.5f * raylib::areaOfRectangle(spriteRect)) {
+						slot.uptrItem = std::make_shared<ECS::Entity>(entity);
+						miniWeapon.posToStay = slot.position + raylib::Vector2(sprite.sprite.GetSize()) * 0.5f;
+						transforms.position = miniWeapon.posToStay;
+						miniWeapon.afterSelecting = false;
+
+						break;
+					}
+				}
+
+				miniWeapon.afterSelecting = false;
+				transforms.position = miniWeapon.posToStay;
+			}
+
+			transforms.position = miniWeapon.posToStay;
 		}
 	}
 }
