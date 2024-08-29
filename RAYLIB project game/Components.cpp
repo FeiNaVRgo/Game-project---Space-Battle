@@ -372,16 +372,19 @@ void WeaponSystem::update() {
 			if (miniWeapon.afterSelecting) {
 				std::vector<Inventory::SlotDef> allSlots{};
 				
-				allSlots.push_back(inventory.slotCore);
+				allSlots.push_back(inventory.slotCore); 
 				std::move(inventory.slotsInv.begin(), inventory.slotsInv.end(), std::back_inserter(allSlots));
 				std::move(inventory.slotsWeapon.begin(), inventory.slotsWeapon.end(), std::back_inserter(allSlots));
 				std::move(inventory.slotsAmmo.begin(), inventory.slotsAmmo.end(), std::back_inserter(allSlots));
 
 				for (auto& slot : allSlots) {
+
+					std::cout << raylib::areaOfRectangle(raylib::Rectangle(slot.position, slot.dimensions).GetCollision(spriteRect)) << "\n";
+					std::cout << raylib::areaOfRectangle(spriteRect) << "\n";
+
 					if (raylib::areaOfRectangle(raylib::Rectangle(slot.position, slot.dimensions).GetCollision(spriteRect)) >= 0.5f * raylib::areaOfRectangle(spriteRect)) {
 						slot.uptrItem = std::make_shared<ECS::Entity>(entity);
 						miniWeapon.posToStay = slot.position + raylib::Vector2(sprite.sprite.GetSize()) * 0.5f;
-						transforms.position = miniWeapon.posToStay;
 						miniWeapon.afterSelecting = false;
 
 						break;
@@ -389,7 +392,6 @@ void WeaponSystem::update() {
 				}
 
 				miniWeapon.afterSelecting = false;
-				transforms.position = miniWeapon.posToStay;
 			}
 
 			transforms.position = miniWeapon.posToStay;
