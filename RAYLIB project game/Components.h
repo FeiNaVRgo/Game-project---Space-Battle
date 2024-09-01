@@ -15,7 +15,7 @@
 #include "Coroutines.h"
 #include "EntityIds.h"
 #include "./Weapons/Weapons.h"
-#include <DirectXCollision.h>
+
 
 #define INVENTORY_WIDTH 200
 
@@ -98,9 +98,17 @@ struct Inventory {
 		STATE_OCCUPIED = 1
 	};
 
+	enum class SLOT_PURPOSE {
+		SLOT_CORE         = 0,
+		SLOT_WEAPON       = 1,
+		SLOT_AMMO         = 2,
+		SLOT_IVNENTORY    = 3
+	};
+
 	struct SlotDef {
 		SLOT_IMPL slotImpl{};
 		SLOT_STATE slotState{};
+		SLOT_PURPOSE slotPurpuse{};
 
 		raylib::Vector2 dimensions{};
 		raylib::Color slotCol{};
@@ -109,27 +117,33 @@ struct Inventory {
 
 		raylib::Vector2 position{};
 	};
-
-
-	SlotDef slotCore{ SLOT_IMPL::ACTIVE, SLOT_STATE::STATE_EMPTY, {30.f, 30.f}, {0, 0, 0, 50}, nullptr, { 0.f, 0.f } };
-	std::vector<SlotDef> slotsWeapon{};
-	std::vector<SlotDef> slotsAmmo{};
-	std::vector<SlotDef> slotsInv{};
 	
+	std::vector<SlotDef> allSlots;
+	uint16_t invSize = 0;
+	uint16_t weaponSize = 0;
+	uint16_t ammoSize = 0;
+
 	raylib::Rectangle inventoryBase{ G::screenWidth - INVENTORY_WIDTH, 0, INVENTORY_WIDTH, G::screenHeight };
 
 	Inventory();
 private:
 	void populateWeapons();
 	void populateInventory();
-	void addInventorySlot();
+	void populateAllSlots();
+	void addSlotInventory();
 	void addSlotWeapon();
 	void DrawSlot(const SlotDef& slot);
 	void DrawSlotOutline(const SlotDef& slot);
 	void DrawVecSlot(const std::vector<SlotDef>& vecSlot, bool drawOutline, bool drawSlot = true);
 	void SetSlotsPos();
-	void InteractWithSlot(SlotDef slot);
+	void InteractWithSlot(SlotDef& slot);
+	void swapItemSlots(SlotDef& slot1, SlotDef& slot2);
+	void copySlotPtr(SlotDef& slot, std::shared_ptr<SlotDef> target);
+	void copySlotPtr(SlotDef& slot, SlotDef* target);
+	void copySlotVecPtr(std::vector<SlotDef>& slotVec, std::vector<std::shared_ptr<SlotDef>>& target);
+	void copySlotVecPtr(std::vector<SlotDef>& slotVec, std::vector<SlotDef*>& target);
 public:
+	void moveUptrItem(std::vector<SlotDef>& vecSlot, ECS::Entity entity);
 	void DrawSprites();
 	void DrawAllSlots();
 	void InteractWithSlots();

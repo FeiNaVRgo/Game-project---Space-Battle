@@ -43,6 +43,17 @@ namespace spatial_hash {
 				std::floor(point.z() * tileLengthInv));
 		}
 
+		template<typename IndexT>
+		IndexT pointFromIndex(
+			const Point& point,
+			const float tileLength
+		) {
+			return IndexT(
+				std::floor(point.x() * tileLength),
+				std::floor(point.y() * tileLength),
+				std::floor(point.z() * tileLength));
+		}
+
 		
 		bool checkTile(const LongIndex& point) {
 			return !(tileMap.at(point).entitySet.empty());
@@ -103,6 +114,10 @@ namespace spatial_hash {
 			}
 		}
 
+		std::set<Entity> queryFromTile(BlockIndex tilePos) {
+			return tileMap.at(LongIndex(tilePos.x(), tilePos.y(), tilePos.z())).entitySet;
+		}
+
 		std::set<Entity> query(Rect area) {
 			std::set<Entity> entityQuery;
 			auto NW = indexFromPoint<BlockIndex>(Point(static_cast<const float>(static_cast<int>(area.x)), static_cast<const float>(static_cast<int>(area.y)), 0), tileSizeInv);
@@ -123,22 +138,32 @@ namespace spatial_hash {
 			return entityQuery;
 		}
 
+		std::set<Entity> query(vec pos, float radius) {
+			std::set<Entity> entityQuery;
+			raylib::Rectangle area{ pos - raylib::Vector2(radius, radius) * 0.5f, raylib::Vector2(radius, radius) };
+
+			auto NW = indexFromPoint<BlockIndex>(Point(static_cast<const float>(static_cast<int>(area.x)), static_cast<const float>(static_cast<int>(area.y)), 0), tileSizeInv);
+			auto NE = indexFromPoint<BlockIndex>(Point(static_cast<const float>(static_cast<int>(area.x + area.width)), static_cast<const float>(static_cast<int>(area.y)), 0), tileSizeInv);
+			auto SW = indexFromPoint<BlockIndex>(Point(static_cast<const float>(static_cast<int>(area.x)), static_cast<const float>(static_cast<int>(area.y + area.height)), 0), tileSizeInv);
+
+
+			for (auto x = NW.x(); x <= NE.x(); x++) {
+				for (auto y = NW.y(); y <= SW.y(); y++) {
+					if (checkInBounds(x, y, 0)) {//TODO -- check x, y are in circle
+						for (const auto& e : tileMap.at(LongIndex(x, y, 0)).entitySet) {
+							entityQuery.insert(e);
+						}
+					}
+				}
+			}
+
+			return entityQuery;
+		}
+		
 		void clearAllTiles() {
 			for (auto& [m, t] : tileMap) {
 				t.entitySet.clear();
 			}
-		}
-
-		std::set<Entity> queryFromTile(BlockIndex tilePos) {
-			return tileMap.at(LongIndex(tilePos.x(), tilePos.y(), tilePos.z())).entitySet;
-		}
-
-		std::set<Entity> getNearestTilePosFromPos(vec pos) {
-			int xs = pos.x;
-			int ys = pos.y;
-
-			//TODO: spiral check
-			return std::set<Entity>{};
 		}
 
 		void drawPopulatedTiles() {

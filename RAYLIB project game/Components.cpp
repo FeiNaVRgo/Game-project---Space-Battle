@@ -2,7 +2,7 @@
 
 
 raylib::Vector2 Hitbox::getHitBoxCenter() {
-	return hitboxRect.GetPosition() + hitboxRect.GetSize() / 2.0f;
+	return hitboxRect.GetPosition() - hitboxRect.GetSize() * 0.5f;
 }
 
 Sprite::~Sprite(){}
@@ -17,9 +17,7 @@ void Health::drawHealthBar(const raylib::Vector2& origin, const raylib::Vector2&
 void Health::drawDamageIndicator(){}
 
 Inventory::Inventory(){
-	populateWeapons();
-	populateInventory();
-	
+	populateAllSlots();
 	SetSlotsPos();
 }
 
@@ -31,16 +29,24 @@ void Inventory::populateWeapons() {
 
 void Inventory::populateInventory() {
 	for (int i = 0; i < 12; i++) {
-		addInventorySlot();
+		addSlotInventory();
 	}
 }
 
-void Inventory::addInventorySlot() {
-	slotsInv.push_back({ SLOT_IMPL::NONACTIVE, SLOT_STATE::STATE_EMPTY, { 30.0f, 30.0f }, { 0, 0, 0, 50 }, nullptr, { 0.f, 0.f } });
+void Inventory::populateAllSlots() {
+	allSlots.push_back({ SLOT_IMPL::ACTIVE, SLOT_STATE::STATE_EMPTY, SLOT_PURPOSE::SLOT_CORE, {30.f, 30.f}, {0, 0, 0, 50}, nullptr, { 0.f, 0.f } });
+	populateWeapons();
+	populateInventory();
+}
+
+void Inventory::addSlotInventory() {
+	allSlots.push_back({ SLOT_IMPL::NONACTIVE, SLOT_STATE::STATE_EMPTY, SLOT_PURPOSE::SLOT_IVNENTORY, { 30.0f, 30.0f }, { 0, 0, 0, 50 }, nullptr, { 0.f, 0.f } });
+	invSize++;
 }
 
 void Inventory::addSlotWeapon() {
-	slotsWeapon.push_back({ SLOT_IMPL::ACTIVE, SLOT_STATE::STATE_EMPTY, { 30.f, 30.f }, { 0, 0, 0, 50 }, nullptr, { 0.f, 0.f } });
+	allSlots.push_back({ SLOT_IMPL::ACTIVE, SLOT_STATE::STATE_EMPTY, SLOT_PURPOSE::SLOT_WEAPON, { 30.f, 30.f }, { 0, 0, 0, 50 }, nullptr, { 0.f, 0.f } });
+	weaponSize++;
 }
 
 void Inventory::DrawSlot(const SlotDef& slot) {
@@ -64,41 +70,59 @@ void Inventory::DrawVecSlot(const std::vector<SlotDef>& vecSlot, bool drawOutlin
 }
 
 void Inventory::SetSlotsPos() {
-	uint16_t r = 70.0f;
-	slotCore.position = raylib::getCenterRect(inventoryBase) - slotCore.dimensions / 2.0f;
+	float r = 70.0f;
+	
 
-	for (auto it = slotsWeapon.begin(); it != slotsWeapon.end(); ++it) {
-		auto i = std::distance(slotsWeapon.begin(), it);
-		float angle = DEG2RAD * (static_cast<float>(i) * 360.0f / static_cast<float>(slotsWeapon.size()));
+	for (auto& slot : allSlots) {
+		if (slot.slotPurpuse == SLOT_PURPOSE::SLOT_CORE) {
+			slot.position = raylib::getCenterRect(inventoryBase) - slot.dimensions / 2.0f;
+			break;
+		}
+	}
+	//slotCore.position = raylib::getCenterRect(inventoryBase) - slotCore.dimensions / 2.0f;
+	
+	
+	int weaponCount = 0;
+	for (auto it = allSlots.begin(); it != allSlots.end(); ++it) {
+		//auto i = std::distance(allSlots.begin(), it);
+		if (it->slotPurpuse == SLOT_PURPOSE::SLOT_WEAPON) {
+			float angle = DEG2RAD * (static_cast<float>(weaponCount) * 360.0f / static_cast<float>(weaponSize));
 
-		it->position = raylib::Vector2{ std::floor(r * cosf(angle)), std::floor(r * sinf(angle)) } + raylib::getCenterRect(inventoryBase) - it->dimensions / 2.0f;
+			it->position = raylib::Vector2{ std::floor(r * cosf(angle)), std::floor(r * sinf(angle)) } + raylib::getCenterRect(inventoryBase) - it->dimensions / 2.0f;
+			weaponCount++;
+		}
 	}
 
 	float totalWidth = 0.f;
 	float y = 0.f;//for the current level of lines in inventory
 	float maxWidth = 0.f;//for later centering of position in invBase
-	for (auto it = slotsInv.begin(); it != slotsInv.end(); ++it) {
+	for (auto it = allSlots.begin(); it != allSlots.end(); ++it) {
 		//auto i = std::distance(slotsInv.begin(), it); //just in case when i want to change something
+		if (it->slotPurpuse == SLOT_PURPOSE::SLOT_IVNENTORY) {
+			if (totalWidth + it->dimensions.x >= INVENTORY_WIDTH) {//without additiion it fucks up
+				maxWidth = totalWidth;
+				totalWidth = 0.0f;
+				y++;
+			}
 
-		if (totalWidth + it->dimensions.x >= INVENTORY_WIDTH) {//without additiion it fucks up
-			maxWidth = totalWidth;
-			totalWidth = 0.0f;
-			y++;
+			it->position = { totalWidth, y * it->dimensions.y };
+			totalWidth += it->dimensions.x;
 		}
-
-		it->position = { totalWidth, y * it->dimensions.y };
-		totalWidth += it->dimensions.x;
 	}
 
-	for (auto& slot : slotsInv) {
-		slot.position.x += inventoryBase.GetPosition().x + (INVENTORY_WIDTH - maxWidth) / 2.0f;
-		slot.position.y += slotCore.position.y + r + 60.f;
+	for (auto& slot : allSlots) {
+		if (slot.slotPurpuse == SLOT_PURPOSE::SLOT_IVNENTORY) {
+			slot.position.x += inventoryBase.GetPosition().x + (INVENTORY_WIDTH - maxWidth) / 2.0f;
+			slot.position.y += allSlots.at(0).position.y + r + 60.f;//at(0) means slot core
+		}
 	}
 }
 
-void Inventory::InteractWithSlot(SlotDef slot) {
+void Inventory::InteractWithSlot(SlotDef& slot) {
 	if (slot.uptrItem != nullptr) {
 		auto& miniWeapon = G::gCoordinator.GetComponent<WeaponMini>(*slot.uptrItem);
+		auto const& sprite= G::gCoordinator.GetComponent<Sprite>(*slot.uptrItem);
+		auto const& transform = G::gCoordinator.GetComponent<Transforms>(*slot.uptrItem);
 
 		if (IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_LEFT) && miniWeapon.isSelected) {
 			miniWeapon.isSelected = false;
@@ -107,19 +131,77 @@ void Inventory::InteractWithSlot(SlotDef slot) {
 
 		if (raylib::Rectangle(slot.position, slot.dimensions).CheckCollision(GetMousePosition()) && IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_LEFT)) {
 			miniWeapon.isSelected = true;
-
-			slot.uptrItem = nullptr;
 		}
 	}
 }
 
-void Inventory::DrawSprites() {
-	for (auto& slot : slotsInv) {
-		if (slot.uptrItem != nullptr) {
-			auto sprite = G::gCoordinator.GetComponent<Sprite>(*slot.uptrItem);
-			auto transform = G::gCoordinator.GetComponent<Transforms>(*slot.uptrItem);
+void Inventory::swapItemSlots(SlotDef& slot1, SlotDef& slot2) {
+	auto temp_slot = slot2;
+	slot2.uptrItem = slot1.uptrItem;
+	slot1.uptrItem = temp_slot.uptrItem;
+}
 
-			EndMode2D();
+void Inventory::moveUptrItem(std::vector<SlotDef>& vecSlot, ECS::Entity entity) {
+	auto& miniWeapon = G::gCoordinator.GetComponent<WeaponMini>(entity);
+	auto& transforms = G::gCoordinator.GetComponent<Transforms>(entity);
+	auto& sprite = G::gCoordinator.GetComponent<Sprite>(entity);
+	auto& inventory = G::gCoordinator.GetComponent<Inventory>(G::player);
+
+	//TODO -- fix memory leak
+
+	auto spriteRect = raylib::Rectangle(transforms.position - sprite.origin, sprite.sprite.GetSize());
+	Inventory::SlotDef* t_slot = new Inventory::SlotDef;
+
+	for (auto& slot : allSlots) {
+		if (slot.uptrItem != nullptr && *(slot.uptrItem) == entity) {
+			t_slot = &slot;
+			std::cout << "here1\n";
+		}
+	}
+
+	for (auto& slot : vecSlot) {
+		if (raylib::areaOfRectangle(raylib::Rectangle(slot.position, slot.dimensions).GetCollision(spriteRect)) >= 0.5f * raylib::areaOfRectangle(spriteRect)) {
+			miniWeapon.posToStay = slot.position + raylib::Vector2(sprite.sprite.GetSize()) * 0.5f;
+			miniWeapon.afterSelecting = false;
+
+			inventory.swapItemSlots(*t_slot, slot);
+
+			std::cout << "here\n";
+
+			break;
+		}
+	}
+
+	//delete t_slot;
+}
+
+void Inventory::copySlotPtr(SlotDef& slot, std::shared_ptr<SlotDef> target) {
+	target = std::make_shared<SlotDef>(slot);
+}
+
+void Inventory::copySlotPtr(SlotDef& slot, SlotDef* target) {
+	target = &slot;
+}
+
+void Inventory::copySlotVecPtr(std::vector<SlotDef>& slotVec, std::vector<std::shared_ptr<SlotDef>>& target) {
+	for (auto const& slot : slotVec) {
+		target.push_back(std::make_shared<SlotDef>(slot));
+	}
+}
+
+void Inventory::copySlotVecPtr(std::vector<SlotDef>& slotVec, std::vector<SlotDef*>& target) {
+	for (auto& slot : slotVec) {
+		target.push_back(&slot);
+	}
+}
+
+void Inventory::DrawSprites() {
+	EndMode2D();
+	for (auto& slot : allSlots) {
+		if (slot.uptrItem != nullptr) {
+			auto const& sprite = G::gCoordinator.GetComponent<Sprite>(*slot.uptrItem);
+			auto const& transform = G::gCoordinator.GetComponent<Transforms>(*slot.uptrItem);
+
 
 			sprite.sprite.Draw(
 				raylib::Rectangle(0.0f, 0.0f, sprite.sprite.width, sprite.sprite.height),
@@ -129,9 +211,9 @@ void Inventory::DrawSprites() {
 				sprite.tint
 			);
 
-			BeginMode2D(G::camera);
 		}
 	}
+	BeginMode2D(G::camera);
 }
 
 void Inventory::DrawAllSlots() {
@@ -141,17 +223,11 @@ void Inventory::DrawAllSlots() {
 	}
 
 	inventoryBase.Draw({ 0, 0, 0, 100 });
-	DrawSlot(slotCore);
-	DrawVecSlot(slotsWeapon, false);
-	DrawVecSlot(slotsInv, true);
+	DrawVecSlot(allSlots, true);
 }
 
 void Inventory::InteractWithSlots() {
-	InteractWithSlot(slotCore);
-	for (auto& slot : slotsWeapon) {
-		InteractWithSlot(slot);
-	}
-	for (auto& slot : slotsInv) {
+	for (auto& slot : allSlots) {
 		InteractWithSlot(slot);
 	}
 }
@@ -351,46 +427,30 @@ void RenderSystem::updateSprites() {
 }
 
 void WeaponSystem::update() {
+	auto& inventory = G::gCoordinator.GetComponent<Inventory>(G::player);
+	auto& sprite_player = G::gCoordinator.GetComponent<Sprite>(G::player);
+	auto& transform_player = G::gCoordinator.GetComponent<Transforms>(G::player);
+	auto& rigidbody_player = G::gCoordinator.GetComponent<RigidBody>(G::player);
+
+	float r = 60.f;
+	for (int i = 0; i < inventory.weaponSize; i++) {
+		raylib::Rectangle rect{ 0.0f, 0.0f, 30.f, 30.f };
+		float angle = DEG2RAD * (static_cast<float>(i) * 360.0f / static_cast<float>(inventory.weaponSize));
+		rect.SetPosition(raylib::Vector2{ std::floor(r * cosf(angle + sprite_player.angle)), std::floor(r * sinf(angle + sprite_player.angle)) } + rigidbody_player.hitbox.getHitBoxCenter());
+		rect.Draw({ 0, 0, 0, 100 });
+	}
+
 	for (auto const& entity : mEntities) {
 		auto& miniWeapon = G::gCoordinator.GetComponent<WeaponMini>(entity);
 		auto& transforms = G::gCoordinator.GetComponent<Transforms>(entity);
 		auto& sprite = G::gCoordinator.GetComponent<Sprite>(entity);
-		auto& inventory = G::gCoordinator.GetComponent<Inventory>(G::player);
-
-		auto spriteRect = raylib::Rectangle(transforms.position, sprite.sprite.GetSize());
 
 		if (miniWeapon.isSelected) {
 			transforms.position = GetMousePosition();
 		}
 		else {
-		    //TODO -- determine posToStay by current position
-
-			//finding where tu put it
-			//if no intersection at the moment goes to rembered slot
-			//if intersetion above 50% goes there
-			//if intersection with more than one slot chooses one that has more tham 50% if not goes to remembered slot
 			if (miniWeapon.afterSelecting) {
-				std::vector<Inventory::SlotDef> allSlots{};
-				
-				allSlots.push_back(inventory.slotCore); 
-				std::move(inventory.slotsInv.begin(), inventory.slotsInv.end(), std::back_inserter(allSlots));
-				std::move(inventory.slotsWeapon.begin(), inventory.slotsWeapon.end(), std::back_inserter(allSlots));
-				std::move(inventory.slotsAmmo.begin(), inventory.slotsAmmo.end(), std::back_inserter(allSlots));
-
-				for (auto& slot : allSlots) {
-
-					std::cout << raylib::areaOfRectangle(raylib::Rectangle(slot.position, slot.dimensions).GetCollision(spriteRect)) << "\n";
-					std::cout << raylib::areaOfRectangle(spriteRect) << "\n";
-
-					if (raylib::areaOfRectangle(raylib::Rectangle(slot.position, slot.dimensions).GetCollision(spriteRect)) >= 0.5f * raylib::areaOfRectangle(spriteRect)) {
-						slot.uptrItem = std::make_shared<ECS::Entity>(entity);
-						miniWeapon.posToStay = slot.position + raylib::Vector2(sprite.sprite.GetSize()) * 0.5f;
-						miniWeapon.afterSelecting = false;
-
-						break;
-					}
-				}
-
+				inventory.moveUptrItem(inventory.allSlots, entity);
 				miniWeapon.afterSelecting = false;
 			}
 
@@ -400,7 +460,31 @@ void WeaponSystem::update() {
 }
 
 inline void WeaponSystem::createWeaponNormalCanon(const WeaponMini& mini) {
-
+	auto const& canonNormal = G::gCoordinator.CreateEntity();
+	//sprite
+	//transforms
+	//weaponNormal
+	//damage
+	G::gCoordinator.AddComponent<Sprite>(canonNormal, Sprite{
+		.sprite = G::weapon_normal_canon,
+		.angle = 0.0f,
+		.tint {255, 255, 255, 255},
+		.origin = raylib::Vector2(G::weapon_normal_canon.GetSize()) * 0.5f,
+		.isDependent = false
+		});
+	G::gCoordinator.AddComponent<Transforms>(canonNormal, Transforms{
+		.position = G::gPlayerPos,
+		.rotation {0.0f, 0.0f},
+		.scale {1.0f, 1.0f}
+		});
+	G::gCoordinator.AddComponent<Damage>(canonNormal, Damage{
+		.damage = 25.f,
+		.damageOnContact = 25.f,
+		.damageType = Damage::DAMAGE_TYPE::PHYSICAL
+		});
+	G::gCoordinator.AddComponent<WeaponNormal>(canonNormal, WeaponNormal{
+		.bulletSprite = G::playerBulletTexture1
+		});
 }
 
 inline void WeaponSystem::createWeaponMiniCanon() {
@@ -423,14 +507,14 @@ inline void WeaponSystem::createWeaponMiniCanon() {
 		});
 
 	raylib::Vector2 pos{};
-	for (auto& slot : inventory.slotsInv) {
-		if (slot.uptrItem == nullptr) {
+	for (auto& slot : inventory.allSlots) {
+		if (slot.slotPurpuse == Inventory::SLOT_PURPOSE::SLOT_IVNENTORY && slot.uptrItem == nullptr) {
 			pos = slot.position + raylib::Vector2(G::weapon_mini_canon.GetSize()) * 0.5f;
 			slot.uptrItem = std::make_shared<ECS::Entity>(canonMini);
 			break;
 		}
 	}
-
+	
 	G::gCoordinator.AddComponent<Transforms>(canonMini, Transforms{
 		.position = pos,
 		.rotation = {0.0f, 0.0f},
@@ -480,23 +564,23 @@ void InputSystem::update() {
 		}
 
 		if (IsKeyDown(KeyInputs::BREAKS)) {
-			if (rigidBody.velocity.x >= 2.f) {
+			if (rigidBody.velocity.x >= 5.f) {
 				rigidBody.velocity.x--;
 			}
-			else if (rigidBody.velocity.x < 2.f) {
+			else if (rigidBody.velocity.x <= -5.f) {
 				rigidBody.velocity.x++;
 			}
-			else if (rigidBody.velocity.x <= 2.f && rigidBody.velocity.x >= -2.f) {
+			else if (rigidBody.velocity.x <= 5.f && rigidBody.velocity.x >= -5.f) {
 				rigidBody.velocity.x = 0.f;
 			}
 
-			if (rigidBody.velocity.y >= 2.f) {
+			if (rigidBody.velocity.y >= 5.f) {
 				rigidBody.velocity.y--;
 			}
-			else if (rigidBody.velocity.y < 2.f) {
+			else if (rigidBody.velocity.y <= -5.f) {
 				rigidBody.velocity.y++;
 			}
-			else if (rigidBody.velocity.y <= 2.f && rigidBody.velocity.y >= -2.f) {
+			else if (rigidBody.velocity.y <= 5.f && rigidBody.velocity.y >= -5.f) {
 				rigidBody.velocity.y = 0.f;
 			}
 		}

@@ -35,6 +35,5 @@ struct WeaponMini {
 };
 
 struct WeaponNormal {
-	ECS::Entity miniImpl;
-	raylib::Texture2DUnmanaged bulletSprite;
+	raylib::Texture2DUnmanaged bulletSprite;//1
 };
