@@ -37,6 +37,7 @@ struct WeaponMini {
 
 	bool isSelected = false;
 	bool afterSelecting = false;
+	bool isNormalInWorld = false;
 
 	raylib::Vector2 posToStay{};
 };

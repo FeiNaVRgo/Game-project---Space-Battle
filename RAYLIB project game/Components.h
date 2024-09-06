@@ -116,7 +116,7 @@ struct Inventory {
 		raylib::Vector2 dimensions{};
 		raylib::Color slotCol{};
 
-		std::shared_ptr<ECS::Entity> uptrItem{};
+		std::shared_ptr<ECS::Entity> ptrItem{};
 
 		raylib::Vector2 position{};
 	};
@@ -327,17 +327,26 @@ public:
 	void updateSprites();
 };
 
+struct WeaponLibrary;
 struct WeaponSystem : ECS::System {
-	using WeaponmMini      = ECS::Entity;
-	using CreateNormalFunc = std::function<void()>;
-	//using CreateMiniFunc   = std::function<void()>;
-	std::unordered_map<ID_WEAPON, CreateNormalFunc> weaponMap;
+	using WeaponmMini       = ECS::Entity;
 
 	void update();
 
-	void fromInvToWorld(Inventory& inv);
+	void weaponInvVibeCheck(Inventory& inv, WeaponLibrary& weaponLibrary);
+	
 	static void createWeaponNormalCanon();
 	static void createWeaponMiniCanon();
+};
+
+struct WeaponLibrary {
+	using CreateNormalFunc = std::function<void()>;
+	using WeaponBehaviour = std::function<void(ECS::Entity)>;
+	
+	std::unordered_map<ID_WEAPON, CreateNormalFunc> weaponMap;
+	std::unordered_map<ID_WEAPON, WeaponBehaviour> weaponBehaviourMap;
+
+	WeaponLibrary();
 };
 
 struct InputSystem : public ECS::System {

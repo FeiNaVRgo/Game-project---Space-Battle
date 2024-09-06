@@ -132,10 +132,10 @@ void Inventory::SetSlotsPos() {
 }
 
 void Inventory::InteractWithSlot(SlotDef& slot) {
-	if (slot.uptrItem != nullptr) {
-		auto& miniWeapon = G::gCoordinator.GetComponent<WeaponMini>(*slot.uptrItem);
-		auto const& sprite= G::gCoordinator.GetComponent<Sprite>(*slot.uptrItem);
-		auto const& transform = G::gCoordinator.GetComponent<Transforms>(*slot.uptrItem);
+	if (slot.ptrItem != nullptr) {
+		auto& miniWeapon = G::gCoordinator.GetComponent<WeaponMini>(*slot.ptrItem);
+		auto const& sprite= G::gCoordinator.GetComponent<Sprite>(*slot.ptrItem);
+		auto const& transform = G::gCoordinator.GetComponent<Transforms>(*slot.ptrItem);
 
 		if (IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_LEFT) && miniWeapon.isSelected) {
 			miniWeapon.isSelected = false;
@@ -150,8 +150,8 @@ void Inventory::InteractWithSlot(SlotDef& slot) {
 
 void Inventory::swapItemSlots(SlotDef& slot1, SlotDef& slot2) {
 	auto temp_slot = slot2;
-	slot2.uptrItem = slot1.uptrItem;
-	slot1.uptrItem = temp_slot.uptrItem;
+	slot2.ptrItem = slot1.ptrItem;
+	slot1.ptrItem = temp_slot.ptrItem;
 }
 
 void Inventory::moveUptrItem(std::vector<SlotDef>& vecSlot, ECS::Entity entity) {
@@ -166,7 +166,7 @@ void Inventory::moveUptrItem(std::vector<SlotDef>& vecSlot, ECS::Entity entity) 
 	Inventory::SlotDef* t_slot = new Inventory::SlotDef;
 
 	for (auto& slot : allSlots) {
-		if (slot.uptrItem != nullptr && *(slot.uptrItem) == entity) {
+		if (slot.ptrItem != nullptr && *(slot.ptrItem) == entity) {
 			t_slot = &slot;
 			std::cout << "here1\n";
 		}
@@ -211,8 +211,8 @@ void Inventory::copySlotVecPtr(std::vector<SlotDef>& slotVec, std::vector<SlotDe
 void Inventory::DrawSprites() {
 	EndMode2D();
 	for (auto& slot : allSlots) {
-		if (slot.uptrItem != nullptr) {
-			Sprite::draw(*slot.uptrItem);
+		if (slot.ptrItem != nullptr) {
+			Sprite::draw(*slot.ptrItem);
 		}
 	}
 	BeginMode2D(G::camera);
@@ -435,6 +435,7 @@ void WeaponSystem::update() {
 		rect.Draw({ 0, 0, 0, 100 });
 	}
 
+	uint32_t weaponNormalCount = 0;
 	for (auto const& entity : mEntities) {
 		auto const& weaponType = G::gCoordinator.GetComponent<WeaponType>(entity);
 		auto& transforms = G::gCoordinator.GetComponent<Transforms>(entity);
@@ -454,11 +455,29 @@ void WeaponSystem::update() {
 				transforms.position = miniWeapon.posToStay;
 			}
 		}
+		else if (weaponType.id == ID_WEAPON_TYPE::NORMAL) {
+			float angle = DEG2RAD * (static_cast<float>(weaponNormalCount) * 360.f / static_cast<float>(inventory.weaponSize));
+			transforms.position = raylib::Vector2{ r * cosf(angle + sprite_player.angle), r * sinf(angle + sprite_player.angle) } + rigidbody_player.hitbox.getHitBoxCenter();
+			weaponNormalCount++;
+			//TODO --  adjust sprite angle to point nearest enemy
+		}
 	}
 }
 
-void WeaponSystem::fromInvToWorld(Inventory& inv) {
-
+void WeaponSystem::weaponInvVibeCheck(Inventory& inv, WeaponLibrary& weaponLibrary) {
+	uint32_t weaponSlotCount = 0;
+	for (auto& slot : inv.allSlots) {
+		if (slot.slotPurpuse == Inventory::SLOT_PURPOSE::SLOT_WEAPON) {
+			weaponSlotCount++;
+			if (slot.ptrItem != nullptr) {
+				auto& weaponMini = G::gCoordinator.GetComponent<WeaponMini>(*slot.ptrItem);
+				if (weaponLibrary.weaponMap.contains(weaponMini.id) && weaponMini.isNormalInWorld == false) {
+					weaponLibrary.weaponMap.at(weaponMini.id)();
+					weaponMini.isNormalInWorld = true;
+				}
+			}
+		}
+	}
 }
 
 inline void WeaponSystem::createWeaponNormalCanon() {
@@ -518,9 +537,9 @@ inline void WeaponSystem::createWeaponMiniCanon() {
 
 	raylib::Vector2 pos{};
 	for (auto& slot : inventory.allSlots) {
-		if (slot.slotPurpuse == Inventory::SLOT_PURPOSE::SLOT_IVNENTORY && slot.uptrItem == nullptr) {
+		if (slot.slotPurpuse == Inventory::SLOT_PURPOSE::SLOT_IVNENTORY && slot.ptrItem == nullptr) {
 			pos = slot.position + raylib::Vector2(G::weapon_mini_canon.GetSize()) * 0.5f;
-			slot.uptrItem = std::make_shared<ECS::Entity>(canonMini);
+			slot.ptrItem = std::make_shared<ECS::Entity>(canonMini);
 			break;
 		}
 	}
@@ -532,6 +551,10 @@ inline void WeaponSystem::createWeaponMiniCanon() {
 		});
 	auto& wp = G::gCoordinator.GetComponent<WeaponMini>(canonMini);
 	wp.posToStay = pos;
+}
+
+WeaponLibrary::WeaponLibrary() {
+
 }
 
 void InputSystem::update() {
