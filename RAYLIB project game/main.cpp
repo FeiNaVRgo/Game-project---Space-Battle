@@ -47,6 +47,7 @@ int main() {
     G::gCoordinator.RegisterComponent<WeaponMini>();
     G::gCoordinator.RegisterComponent<WeaponNormal>();
     G::gCoordinator.RegisterComponent<WeaponType>();
+    G::gCoordinator.RegisterComponent<WeaponLibrary>();
 
     G::physicsSystem = G::gCoordinator.RegisterSystem<PhysicsSystem>();
 
@@ -171,6 +172,7 @@ int main() {
     G::gCoordinator.AddComponent<TimerComponent>(G::player, TimerComponent{});
     ComponentCommons::addComponent<Damage>(G::player, 5, 5);
     G::gCoordinator.AddComponent<Inventory>(G::player, Inventory{});
+    G::gCoordinator.AddComponent<WeaponLibrary>(G::player, WeaponLibrary{});
     
     auto const& t = G::gCoordinator.GetComponent<RigidBody>(G::player);
     spatial_hash::gGird.insert(G::player, t.hitbox.hitboxRect);

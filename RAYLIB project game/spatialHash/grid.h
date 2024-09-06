@@ -23,7 +23,7 @@ namespace spatial_hash {
 		int tileSize;
 		float tileSizeInv;
 		uint32_t gridSize;
-		uint32_t tileCount;
+		int tileCount;
 		uint32_t entityCount;
 		
 

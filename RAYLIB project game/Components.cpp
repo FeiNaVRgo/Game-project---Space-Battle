@@ -2,7 +2,7 @@
 
 
 raylib::Vector2 Hitbox::getHitBoxCenter() {
-	return hitboxRect.GetPosition() - hitboxRect.GetSize() * 0.5f;
+	return hitboxRect.GetPosition() + hitboxRect.GetSize() * 0.5f;
 }
 
 inline void Sprite::draw(ECS::Entity entity) {
@@ -423,6 +423,7 @@ void RenderSystem::updateSprites() {
 
 void WeaponSystem::update() {
 	auto& inventory = G::gCoordinator.GetComponent<Inventory>(G::player);
+	auto& weaponLibrary = G::gCoordinator.GetComponent<WeaponLibrary>(G::player);
 	auto& sprite_player = G::gCoordinator.GetComponent<Sprite>(G::player);
 	auto& transform_player = G::gCoordinator.GetComponent<Transforms>(G::player);
 	auto& rigidbody_player = G::gCoordinator.GetComponent<RigidBody>(G::player);
@@ -431,9 +432,10 @@ void WeaponSystem::update() {
 	for (int i = 0; i < inventory.weaponSize; i++) {
 		raylib::Rectangle rect{ 0.0f, 0.0f, 30.f, 30.f };
 		float angle = DEG2RAD * (static_cast<float>(i) * 360.0f / static_cast<float>(inventory.weaponSize));
-		rect.SetPosition(raylib::Vector2{ r * cosf(angle + sprite_player.angle), r * sinf(angle + sprite_player.angle) } + rigidbody_player.hitbox.getHitBoxCenter());
+		rect.SetPosition(raylib::Vector2{ r * cosf(angle + sprite_player.angle), r * sinf(angle + sprite_player.angle) } + rigidbody_player.hitbox.getHitBoxCenter() - rect.GetSize() * 0.5f);
 		rect.Draw({ 0, 0, 0, 100 });
 	}
+	weaponInvVibeCheck(inventory, weaponLibrary);
 
 	uint32_t weaponNormalCount = 0;
 	for (auto const& entity : mEntities) {
@@ -464,16 +466,20 @@ void WeaponSystem::update() {
 	}
 }
 
-void WeaponSystem::weaponInvVibeCheck(Inventory& inv, WeaponLibrary& weaponLibrary) {
+void WeaponSystem::weaponInvVibeCheck(Inventory& inv, WeaponLibrary const& weaponLibrary) {
 	uint32_t weaponSlotCount = 0;
 	for (auto& slot : inv.allSlots) {
+		WeaponMini& weaponMini;
 		if (slot.slotPurpuse == Inventory::SLOT_PURPOSE::SLOT_WEAPON) {
 			weaponSlotCount++;
+			//bool isNull = (slot.ptrItem == nullptr);
+			//using type = std::conditional<false, std::shared_ptr<ECS::Entity>, ECS::Entity>::type;
 			if (slot.ptrItem != nullptr) {
-				auto& weaponMini = G::gCoordinator.GetComponent<WeaponMini>(*slot.ptrItem);
+				weaponMini = G::gCoordinator.GetComponent<WeaponMini>(*slot.ptrItem);
+
 				if (weaponLibrary.weaponMap.contains(weaponMini.id) && weaponMini.isNormalInWorld == false) {
 					weaponLibrary.weaponMap.at(weaponMini.id)();
-					weaponMini.isNormalInWorld = true;
+					weaponMini.isNormalInWorld = true;//TODO -- delete weaponNormal when conditions
 				}
 			}
 		}
@@ -554,7 +560,7 @@ inline void WeaponSystem::createWeaponMiniCanon() {
 }
 
 WeaponLibrary::WeaponLibrary() {
-
+	weaponMap.try_emplace(ID_WEAPON::ID_CANON, WeaponSystem::createWeaponNormalCanon);
 }
 
 void InputSystem::update() {

@@ -333,7 +333,7 @@ struct WeaponSystem : ECS::System {
 
 	void update();
 
-	void weaponInvVibeCheck(Inventory& inv, WeaponLibrary& weaponLibrary);
+	void weaponInvVibeCheck(Inventory& inv, WeaponLibrary const& weaponLibrary);
 	
 	static void createWeaponNormalCanon();
 	static void createWeaponMiniCanon();
