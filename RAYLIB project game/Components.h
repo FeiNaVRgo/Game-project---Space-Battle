@@ -6,6 +6,7 @@
 #include <numbers>
 #include <iostream>
 #include <algorithm>
+#include <functional>
 #include "ECS.h"
 #include "globals.h"
 #include "Timer.h"
@@ -327,11 +328,15 @@ public:
 };
 
 struct WeaponSystem : ECS::System {
-	using WeaponmMini = ECS::Entity;
+	using WeaponmMini      = ECS::Entity;
+	using CreateNormalFunc = std::function<void()>;
+	//using CreateMiniFunc   = std::function<void()>;
+	std::unordered_map<ID_WEAPON, CreateNormalFunc> weaponMap;
 
 	void update();
 
-	static void createWeaponNormalCanon(const WeaponMini& mini);
+	void fromInvToWorld(Inventory& inv);
+	static void createWeaponNormalCanon();
 	static void createWeaponMiniCanon();
 };
 

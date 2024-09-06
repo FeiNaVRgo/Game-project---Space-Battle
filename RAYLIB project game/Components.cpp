@@ -436,30 +436,40 @@ void WeaponSystem::update() {
 	}
 
 	for (auto const& entity : mEntities) {
-		auto& miniWeapon = G::gCoordinator.GetComponent<WeaponMini>(entity);
+		auto const& weaponType = G::gCoordinator.GetComponent<WeaponType>(entity);
 		auto& transforms = G::gCoordinator.GetComponent<Transforms>(entity);
 		auto& sprite = G::gCoordinator.GetComponent<Sprite>(entity);
 
-		if (miniWeapon.isSelected) {
-			transforms.position = GetMousePosition();
-		}
-		else {
-			if (miniWeapon.afterSelecting) {
-				inventory.moveUptrItem(inventory.allSlots, entity);
-				miniWeapon.afterSelecting = false;
+		if (weaponType.id == ID_WEAPON_TYPE::MINI) {
+			auto& miniWeapon = G::gCoordinator.GetComponent<WeaponMini>(entity);
+			if (miniWeapon.isSelected) {
+				transforms.position = GetMousePosition();
 			}
+			else {
+				if (miniWeapon.afterSelecting) {
+					inventory.moveUptrItem(inventory.allSlots, entity);
+					miniWeapon.afterSelecting = false;
+				}
 
-			transforms.position = miniWeapon.posToStay;
+				transforms.position = miniWeapon.posToStay;
+			}
 		}
 	}
 }
 
-inline void WeaponSystem::createWeaponNormalCanon(const WeaponMini& mini) {
+void WeaponSystem::fromInvToWorld(Inventory& inv) {
+
+}
+
+inline void WeaponSystem::createWeaponNormalCanon() {
 	auto const& canonNormal = G::gCoordinator.CreateEntity();
 	//sprite
 	//transforms
 	//weaponNormal
 	//damage
+	G::gCoordinator.AddComponent<WeaponType>(canonNormal, WeaponType{
+		.id = ID_WEAPON_TYPE::NORMAL
+		});
 	G::gCoordinator.AddComponent<Sprite>(canonNormal, Sprite{
 		.sprite = G::weapon_normal_canon,
 		.angle = 0.0f,
@@ -471,6 +481,7 @@ inline void WeaponSystem::createWeaponNormalCanon(const WeaponMini& mini) {
 		.position = G::gPlayerPos,
 		.rotation {0.0f, 0.0f},
 		.scale {1.0f, 1.0f}
+
 		});
 	G::gCoordinator.AddComponent<Damage>(canonNormal, Damage{
 		.damage = 25.f,
@@ -485,13 +496,17 @@ inline void WeaponSystem::createWeaponNormalCanon(const WeaponMini& mini) {
 inline void WeaponSystem::createWeaponMiniCanon() {
 	auto const& canonMini = G::gCoordinator.CreateEntity();
 	auto& inventory = G::gCoordinator.GetComponent<Inventory>(G::player);
-
+	
+	G::gCoordinator.AddComponent<WeaponType>(canonMini, WeaponType{
+		.id = ID_WEAPON_TYPE::MINI
+		});
 	G::gCoordinator.AddComponent<WeaponMini>(canonMini, WeaponMini{
 		.isHeld = false,
 		.isEquipped = false,
 		.rarity = ID_WEAPON_RARITY::COMMON,
 		.name = "OMNIPOTENT CANON",
-		.description = "This canon transcendents all of universe"
+		.description = "This canon transcendents all of universe",
+		.id = ID_WEAPON::ID_CANON
 		});
 	G::gCoordinator.AddComponent<Sprite>(canonMini, Sprite{
 		.sprite = G::weapon_mini_canon,

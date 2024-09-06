@@ -46,6 +46,7 @@ int main() {
     G::gCoordinator.RegisterComponent<Inventory>();
     G::gCoordinator.RegisterComponent<WeaponMini>();
     G::gCoordinator.RegisterComponent<WeaponNormal>();
+    G::gCoordinator.RegisterComponent<WeaponType>();
 
     G::physicsSystem = G::gCoordinator.RegisterSystem<PhysicsSystem>();
 
@@ -126,7 +127,7 @@ int main() {
     G::weaponSystem = G::gCoordinator.RegisterSystem<WeaponSystem>();
 
     ECS::Signature signature10;
-    signature10.set(G::gCoordinator.GetComponentType<WeaponMini>());
+    signature10.set(G::gCoordinator.GetComponentType<WeaponType>());
     signature10.set(G::gCoordinator.GetComponentType<Transforms>());
     signature10.set(G::gCoordinator.GetComponentType<Sprite>());
     G::gCoordinator.SetSystemSignature<WeaponSystem>(signature10);
