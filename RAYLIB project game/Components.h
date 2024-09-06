@@ -67,6 +67,8 @@ struct Sprite {
 	raylib::Vector2 origin;//4
 	bool isDependent = false;//5
 
+	static void draw(ECS::Entity entity);
+
 	~Sprite();
 };
 

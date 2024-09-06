@@ -5,6 +5,19 @@ raylib::Vector2 Hitbox::getHitBoxCenter() {
 	return hitboxRect.GetPosition() - hitboxRect.GetSize() * 0.5f;
 }
 
+inline void Sprite::draw(ECS::Entity entity) {
+	auto& sprite = G::gCoordinator.GetComponent<Sprite>(entity);
+	auto& transform = G::gCoordinator.GetComponent<Transforms>(entity);
+
+	sprite.sprite.Draw(
+		raylib::Rectangle(0.0f, 0.0f, sprite.sprite.width, sprite.sprite.height),
+		raylib::Rectangle(transform.position.x, transform.position.y, sprite.sprite.width, sprite.sprite.height),
+		raylib::Vector2(sprite.origin),
+		sprite.angle * RAD2DEG,
+		sprite.tint
+	);
+}
+
 Sprite::~Sprite(){}
 
 void Health::drawHealthBar(const raylib::Vector2& origin, const raylib::Vector2& offsetFromOrigin) {
@@ -199,18 +212,7 @@ void Inventory::DrawSprites() {
 	EndMode2D();
 	for (auto& slot : allSlots) {
 		if (slot.uptrItem != nullptr) {
-			auto const& sprite = G::gCoordinator.GetComponent<Sprite>(*slot.uptrItem);
-			auto const& transform = G::gCoordinator.GetComponent<Transforms>(*slot.uptrItem);
-
-
-			sprite.sprite.Draw(
-				raylib::Rectangle(0.0f, 0.0f, sprite.sprite.width, sprite.sprite.height),
-				raylib::Rectangle(transform.position.x, transform.position.y, sprite.sprite.width, sprite.sprite.height),
-				raylib::Vector2(sprite.origin),
-				sprite.angle * RAD2DEG,
-				sprite.tint
-			);
-
+			Sprite::draw(*slot.uptrItem);
 		}
 	}
 	BeginMode2D(G::camera);
@@ -412,14 +414,7 @@ void RenderSystem::updateSprites() {
 		auto& sprite = G::gCoordinator.GetComponent<Sprite>(entity);
 		
 		if (!sprite.isDependent) {
-
-			sprite.sprite.Draw(
-				raylib::Rectangle(0.0f, 0.0f, sprite.sprite.width, sprite.sprite.height),
-				raylib::Rectangle(transform.position.x, transform.position.y, sprite.sprite.width, sprite.sprite.height),
-				raylib::Vector2(sprite.origin),
-				sprite.angle * RAD2DEG,
-				sprite.tint
-			);
+			Sprite::draw(entity);
 		}
 
 		G::gridRect.DrawLines(raylib::Color::Blue());
@@ -436,7 +431,7 @@ void WeaponSystem::update() {
 	for (int i = 0; i < inventory.weaponSize; i++) {
 		raylib::Rectangle rect{ 0.0f, 0.0f, 30.f, 30.f };
 		float angle = DEG2RAD * (static_cast<float>(i) * 360.0f / static_cast<float>(inventory.weaponSize));
-		rect.SetPosition(raylib::Vector2{ std::floor(r * cosf(angle + sprite_player.angle)), std::floor(r * sinf(angle + sprite_player.angle)) } + rigidbody_player.hitbox.getHitBoxCenter());
+		rect.SetPosition(raylib::Vector2{ r * cosf(angle + sprite_player.angle), r * sinf(angle + sprite_player.angle) } + rigidbody_player.hitbox.getHitBoxCenter());
 		rect.Draw({ 0, 0, 0, 100 });
 	}
 
