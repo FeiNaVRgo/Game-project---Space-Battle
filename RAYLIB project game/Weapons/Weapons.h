@@ -3,6 +3,7 @@
 #include "../Components.h"
 #include "../ECS.h"
 #include <unordered_map>
+#include <memory>
 
 enum class ID_WEAPON_TYPE {
 	NORMAL = 1,
@@ -34,6 +35,7 @@ struct WeaponMini {
 	std::string description;//5
 
 	ID_WEAPON id;//6
+	std::shared_ptr<ECS::Entity> ptrWeaponNormal = nullptr;
 
 	bool isSelected = false;
 	bool afterSelecting = false;
@@ -44,6 +46,7 @@ struct WeaponMini {
 
 struct WeaponNormal {
 	raylib::Texture2DUnmanaged bulletSprite;//1
+	ID_WEAPON id;//2
 };
 
 struct WeaponType {

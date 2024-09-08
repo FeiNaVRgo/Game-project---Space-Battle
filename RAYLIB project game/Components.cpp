@@ -168,6 +168,19 @@ void Inventory::moveUptrItem(std::vector<SlotDef>& vecSlot, ECS::Entity entity) 
 	for (auto& slot : allSlots) {
 		if (slot.ptrItem != nullptr && *(slot.ptrItem) == entity) {
 			t_slot = &slot;
+
+			//takes care of deleting normal weapon from slot_weappon - creawting is takken care in vibecheck function
+			//yippe
+			if (slot.slotPurpuse == Inventory::SLOT_PURPOSE::SLOT_WEAPON) {
+				auto& weaponMini = G::gCoordinator.GetComponent<WeaponMini>(*slot.ptrItem);
+				if (weaponMini.isNormalInWorld) {
+					auto& weaponNormal = G::gCoordinator.GetComponent<WeaponNormal>(*weaponMini.ptrWeaponNormal);
+					G::gEntitySetToBeDestroyed.insert(*weaponMini.ptrWeaponNormal);
+					weaponMini.ptrWeaponNormal = nullptr;
+					weaponMini.isNormalInWorld = false;
+				}
+			}
+
 			std::cout << "here1\n";
 		}
 	}
@@ -423,9 +436,8 @@ void RenderSystem::updateSprites() {
 
 void WeaponSystem::update() {
 	auto& inventory = G::gCoordinator.GetComponent<Inventory>(G::player);
-	auto& weaponLibrary = G::gCoordinator.GetComponent<WeaponLibrary>(G::player);
-	auto& sprite_player = G::gCoordinator.GetComponent<Sprite>(G::player);
-	auto& transform_player = G::gCoordinator.GetComponent<Transforms>(G::player);
+	auto const& weaponLibrary = G::gCoordinator.GetComponent<WeaponLibrary>(G::player);
+	auto const& sprite_player = G::gCoordinator.GetComponent<Sprite>(G::player);
 	auto& rigidbody_player = G::gCoordinator.GetComponent<RigidBody>(G::player);
 
 	float r = 60.f;
@@ -457,36 +469,39 @@ void WeaponSystem::update() {
 				transforms.position = miniWeapon.posToStay;
 			}
 		}
-		else if (weaponType.id == ID_WEAPON_TYPE::NORMAL) {
-			float angle = DEG2RAD * (static_cast<float>(weaponNormalCount) * 360.f / static_cast<float>(inventory.weaponSize));
-			transforms.position = raylib::Vector2{ r * cosf(angle + sprite_player.angle), r * sinf(angle + sprite_player.angle) } + rigidbody_player.hitbox.getHitBoxCenter();
-			weaponNormalCount++;
-			//TODO --  adjust sprite angle to point nearest enemy
-		}
 	}
 }
 
-void WeaponSystem::weaponInvVibeCheck(Inventory& inv, WeaponLibrary const& weaponLibrary) {
+void WeaponSystem::weaponInvVibeCheck(Inventory const& inv, WeaponLibrary const& weaponLibrary) {
 	uint32_t weaponSlotCount = 0;
-	for (auto& slot : inv.allSlots) {
-		WeaponMini& weaponMini;
+	
+	auto const& sprite_player = G::gCoordinator.GetComponent<Sprite>(G::player);
+	auto& rigidbody_player = G::gCoordinator.GetComponent<RigidBody>(G::player);
+	float r = 60.f;
+
+	for (auto const& slot : inv.allSlots) {
 		if (slot.slotPurpuse == Inventory::SLOT_PURPOSE::SLOT_WEAPON) {
-			weaponSlotCount++;
-			//bool isNull = (slot.ptrItem == nullptr);
-			//using type = std::conditional<false, std::shared_ptr<ECS::Entity>, ECS::Entity>::type;
 			if (slot.ptrItem != nullptr) {
-				weaponMini = G::gCoordinator.GetComponent<WeaponMini>(*slot.ptrItem);
+				auto& weaponMini = G::gCoordinator.GetComponent<WeaponMini>(*slot.ptrItem);
+				
+				if (weaponMini.isNormalInWorld) {
+					auto& transforms = G::gCoordinator.GetComponent<Transforms>(*weaponMini.ptrWeaponNormal);
+
+					float angle = DEG2RAD * (static_cast<float>(weaponSlotCount) * 360.f / static_cast<float>(inv.weaponSize));
+					transforms.position = raylib::Vector2{ r * cosf(angle + sprite_player.angle), r * sinf(angle + sprite_player.angle) } + rigidbody_player.hitbox.getHitBoxCenter();
+				}
 
 				if (weaponLibrary.weaponMap.contains(weaponMini.id) && weaponMini.isNormalInWorld == false) {
-					weaponLibrary.weaponMap.at(weaponMini.id)();
-					weaponMini.isNormalInWorld = true;//TODO -- delete weaponNormal when conditions
+					weaponLibrary.weaponMap.at(weaponMini.id)(G::gCoordinator.GetComponent<Inventory>(G::player), weaponMini);
+					weaponMini.isNormalInWorld = true;
 				}
 			}
+			weaponSlotCount++;
 		}
 	}
 }
 
-inline void WeaponSystem::createWeaponNormalCanon() {
+inline void WeaponSystem::createWeaponNormalCanon(Inventory& inv, WeaponMini& weaponMini) {
 	auto const& canonNormal = G::gCoordinator.CreateEntity();
 	//sprite
 	//transforms
@@ -506,7 +521,6 @@ inline void WeaponSystem::createWeaponNormalCanon() {
 		.position = G::gPlayerPos,
 		.rotation {0.0f, 0.0f},
 		.scale {1.0f, 1.0f}
-
 		});
 	G::gCoordinator.AddComponent<Damage>(canonNormal, Damage{
 		.damage = 25.f,
@@ -514,8 +528,11 @@ inline void WeaponSystem::createWeaponNormalCanon() {
 		.damageType = Damage::DAMAGE_TYPE::PHYSICAL
 		});
 	G::gCoordinator.AddComponent<WeaponNormal>(canonNormal, WeaponNormal{
-		.bulletSprite = G::playerBulletTexture1
+		.bulletSprite = G::playerBulletTexture1,
+		.id = ID_WEAPON::ID_CANON
 		});
+
+	weaponMini.ptrWeaponNormal = std::make_shared<ECS::Entity>(canonNormal);
 }
 
 inline void WeaponSystem::createWeaponMiniCanon() {
@@ -562,7 +579,7 @@ inline void WeaponSystem::createWeaponMiniCanon() {
 WeaponLibrary::WeaponLibrary() {
 	weaponMap.try_emplace(ID_WEAPON::ID_CANON, WeaponSystem::createWeaponNormalCanon);
 }
-
+ 
 void InputSystem::update() {
 	for (auto const& entity : mEntities) {
 		auto& transform = G::gCoordinator.GetComponent<Transforms>(entity);
@@ -863,8 +880,8 @@ void BulletManipulationSystem::update() {
 
 void EntityRemovalSystem::update() {
 	for (auto const& entity : G::gEntitySetToBeDestroyed) {
-		auto& rigidBody = G::gCoordinator.GetComponent<RigidBody>(entity);
-		auto& sprite = G::gCoordinator.GetComponent<Sprite>(entity);
+		//auto& rigidBody = G::gCoordinator.GetComponent<RigidBody>(entity);
+		//auto& sprite = G::gCoordinator.GetComponent<Sprite>(entity);
 
 		//sprite.sprite.Unload();
 		G::gCoordinator.DestroyEntity(entity);
