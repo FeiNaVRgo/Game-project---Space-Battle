@@ -336,7 +336,7 @@ struct WeaponSystem : ECS::System {
 	
 	void weaponInvVibeCheck(Inventory const& inv, WeaponLibrary const& weaponLibrary);
 	
-	static void createWeaponNormalCanon(Inventory& inv, WeaponMini& weaponMini);
+	static void createWeaponNormalCanon(Inventory& inv, WeaponMini& weaponMini); //make this creation / destruction / behaviour a class of functions weapon -> derived from abstract class
 	static void createWeaponMiniCanon();
 };
 
@@ -344,7 +344,7 @@ struct WeaponLibrary {
 	using CreateNormalFunc = std::function<void(Inventory&, WeaponMini&)>;
 	using WeaponBehaviour = std::function<void(ECS::Entity)>;
 	
-	std::unordered_map<ID_WEAPON, CreateNormalFunc> weaponMap;
+	std::unordered_map<ID_WEAPON, CreateNormalFunc> weaponMap
 	std::unordered_map<ID_WEAPON, WeaponBehaviour> weaponBehaviourMap;
 
 	WeaponLibrary();
