@@ -11,7 +11,6 @@
 #include "ECS.h"
 #include "globals.h"
 #include "Timer.h"
-#include "spatialHash/grid.h"
 #include "GeometryCalc.hpp"
 #include "utils.hpp"
 #include "Coroutines.h"
@@ -235,7 +234,7 @@ struct TimerComponent {
 };
 
 struct EntitySpecific {
-	uint8_t id;
+	ID_ENTITY id;
 };
 
 struct Parent {
@@ -336,15 +335,16 @@ struct WeaponSystem : ECS::System {
 	
 	void weaponInvVibeCheck(Inventory const& inv, WeaponLibrary const& weaponLibrary);
 	
-	static void createWeaponNormalCanon(Inventory& inv, WeaponMini& weaponMini); //make this creation / destruction / behaviour a class of functions weapon -> derived from abstract class
 	static void createWeaponMiniCanon();
+	static void createWeaponNormalCanon(Inventory& inv, WeaponMini& weaponMini); //make this creation / destruction / behaviour a class of functions weapon -> derived from abstract class
+	static void behaviourWeaponNormalCanon(ECS::Entity weaponNormalEntity);
 };
 
 struct WeaponLibrary {
 	using CreateNormalFunc = std::function<void(Inventory&, WeaponMini&)>;
 	using WeaponBehaviour = std::function<void(ECS::Entity)>;
 	
-	std::unordered_map<ID_WEAPON, CreateNormalFunc> weaponMap
+	std::unordered_map<ID_WEAPON, CreateNormalFunc> weaponMap;
 	std::unordered_map<ID_WEAPON, WeaponBehaviour> weaponBehaviourMap;
 
 	WeaponLibrary();

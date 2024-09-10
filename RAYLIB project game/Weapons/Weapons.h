@@ -52,3 +52,7 @@ struct WeaponNormal {
 struct WeaponType {
 	ID_WEAPON_TYPE id;//1
 };
+
+struct Weapon {
+
+};

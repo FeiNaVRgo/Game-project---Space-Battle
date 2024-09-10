@@ -1,5 +1,5 @@
 #include "Components.h"
-
+#include "spatialHash/grid.h"
 
 raylib::Vector2 Hitbox::getHitBoxCenter() {
 	return hitboxRect.GetPosition() + hitboxRect.GetSize() * 0.5f;
@@ -423,7 +423,7 @@ void PhysicsSystem::update(float dt) {
 
 void RenderSystem::updateSprites() {
 	for (auto const& entity : mEntities) {
-		auto& transform = G::gCoordinator.GetComponent<Transforms>(entity);
+		//auto& transform = G::gCoordinator.GetComponent<Transforms>(entity);
 		auto& sprite = G::gCoordinator.GetComponent<Sprite>(entity);
 		
 		if (!sprite.isDependent) {
@@ -489,6 +489,8 @@ void WeaponSystem::weaponInvVibeCheck(Inventory const& inv, WeaponLibrary const&
 
 					float angle = DEG2RAD * (static_cast<float>(weaponSlotCount) * 360.f / static_cast<float>(inv.weaponSize));
 					transforms.position = raylib::Vector2{ r * cosf(angle + sprite_player.angle), r * sinf(angle + sprite_player.angle) } + rigidbody_player.hitbox.getHitBoxCenter();
+					
+					weaponLibrary.weaponBehaviourMap.at(weaponMini.id)(*weaponMini.ptrWeaponNormal);
 				}
 
 				if (weaponLibrary.weaponMap.contains(weaponMini.id) && weaponMini.isNormalInWorld == false) {
@@ -531,6 +533,9 @@ inline void WeaponSystem::createWeaponNormalCanon(Inventory& inv, WeaponMini& we
 		.bulletSprite = G::playerBulletTexture1,
 		.id = ID_WEAPON::ID_CANON
 		});
+	G::gCoordinator.AddComponent<EntitySpecific>(canonNormal, EntitySpecific{
+		.id = ID_ENTITY::WEAPON_ID
+		});
 
 	weaponMini.ptrWeaponNormal = std::make_shared<ECS::Entity>(canonNormal);
 }
@@ -557,7 +562,9 @@ inline void WeaponSystem::createWeaponMiniCanon() {
 		.origin = raylib::Vector2(G::weapon_mini_canon.GetSize()) * 0.5f,
 		.isDependent = true
 		});
-
+	G::gCoordinator.AddComponent<EntitySpecific>(canonMini, EntitySpecific{
+		.id = ID_ENTITY::WEAPON_ID
+		});
 	raylib::Vector2 pos{};
 	for (auto& slot : inventory.allSlots) {
 		if (slot.slotPurpuse == Inventory::SLOT_PURPOSE::SLOT_IVNENTORY && slot.ptrItem == nullptr) {
@@ -576,8 +583,31 @@ inline void WeaponSystem::createWeaponMiniCanon() {
 	wp.posToStay = pos;
 }
 
+inline void WeaponSystem::behaviourWeaponNormalCanon(ECS::Entity weaponNormalEntity) {
+	auto const& transforms_weapon = G::gCoordinator.GetComponent<Transforms>(weaponNormalEntity);
+	auto& sprite_weapon = G::gCoordinator.GetComponent<Sprite>(weaponNormalEntity);
+	
+	auto targetedEntity = spatial_hash::gGird.queryNearestEntityById(transforms_weapon.position, 800.0f, ID_ENTITY::ENEMY_ID);
+
+	if (targetedEntity.has_value()) {
+		auto& rigidBody_targetedEntity = G::gCoordinator.GetComponent<RigidBody>(targetedEntity.value());
+		auto const& entityCenter = rigidBody_targetedEntity.hitbox.getHitBoxCenter();
+		
+		float distance = Vector2Distance(transforms_weapon.position, entityCenter);
+		raylib::Vector2 v = { (entityCenter.x - transforms_weapon.position.x) / distance,
+							  (entityCenter.y - transforms_weapon.position.y) / distance };
+		float angle = atan2f(v.x, -v.y);
+
+		sprite_weapon.angle = angle;
+	}
+	else {
+		sprite_weapon.angle = 0.0f;
+	}
+}
+
 WeaponLibrary::WeaponLibrary() {
 	weaponMap.try_emplace(ID_WEAPON::ID_CANON, WeaponSystem::createWeaponNormalCanon);
+	weaponBehaviourMap.try_emplace(ID_WEAPON::ID_CANON, WeaponSystem::behaviourWeaponNormalCanon);
 }
  
 void InputSystem::update() {
@@ -690,7 +720,7 @@ void InputSystem::update() {
 			G::gCoordinator.AddComponent<Bullet>(entity1, Bullet{
 				});
 			G::gCoordinator.AddComponent<EntitySpecific>(entity1, EntitySpecific{
-				.id = ENTITY_ID::PLAYER_BULLET_ID
+				.id = ID_ENTITY::PLAYER_BULLET_ID
 				});
 			ComponentCommons::addComponent<TimerComponent>(entity1);
 			ComponentCommons::addComponent<Damage>(entity1, 5, 5);
@@ -711,7 +741,7 @@ void HealthSystem::update() {
 		auto& timerComponent = G::gCoordinator.GetComponent<TimerComponent>(entity);
 		auto& entitySpecific = G::gCoordinator.GetComponent<EntitySpecific>(entity);
 
-		if (entitySpecific.id == ENTITY_ID::ENEMY_ID) {
+		if (entitySpecific.id == ID_ENTITY::ENEMY_ID) {
 			_health.drawHealthBar(rigidBody.hitbox.getHitBoxCenter(), raylib::Vector2(0, sprite.sprite.height / 2.0f + 2));
 		}
 
@@ -733,7 +763,7 @@ void HealthSystem::update() {
 		}
 
 		if (_health.health <= 0.0f) {
-			if (entitySpecific.id == ENTITY_ID::ENEMY_ID) {
+			if (entitySpecific.id == ID_ENTITY::ENEMY_ID) {
 				G::gEnemyCounter--;
 			}
 			G::gEntitySetToBeDestroyed.insert(entity);
@@ -757,14 +787,14 @@ void CollisionSystem::update() {
 			auto& damage2 = G::gCoordinator.GetComponent<Damage>(entity2);
 
 			if (entity1 != entity2 && rigidBody2.hitbox.hitboxRect.CheckCollision(rigidBody1.hitbox.hitboxRect)) {
-				if (entitySpecific1.id == ENTITY_ID::ENEMY_ID && entitySpecific2.id == ENTITY_ID::PLAYER_ID) {
+				if (entitySpecific1.id == ID_ENTITY::ENEMY_ID && entitySpecific2.id == ID_ENTITY::PLAYER_ID) {
 					if (!health2.isDamaged) {
 						health2.healthToSubstract = damage1.damageOnContact;
 						health2.toBeDamaged = true;
 					}
 					health2.isDamaged = true;
 				}
-				else if (entitySpecific1.id == ENTITY_ID::ENEMY_ID && entitySpecific2.id == ENTITY_ID::PLAYER_BULLET_ID) {
+				else if (entitySpecific1.id == ID_ENTITY::ENEMY_ID && entitySpecific2.id == ID_ENTITY::PLAYER_BULLET_ID) {
 					if (!health1.isDamaged) {
 						health1.healthToSubstract = damage2.damageOnContact;
 						health1.toBeDamaged = true;
@@ -773,7 +803,7 @@ void CollisionSystem::update() {
 					health2.health = 0.0f;
 				}
 
-				if (entitySpecific1.id == ENTITY_ID::ENEMY_ID && entitySpecific2.id == ENTITY_ID::ENEMY_ID) {
+				if (entitySpecific1.id == ID_ENTITY::ENEMY_ID && entitySpecific2.id == ID_ENTITY::ENEMY_ID) {
 					//handling collison here bruh
 					raylib::AABBcollisionResponse(transform1.position, transform2.position, rigidBody1.hitbox.hitboxRect, rigidBody2.hitbox.hitboxRect);
 
@@ -836,7 +866,7 @@ void EnemySpawningSystem::update() {
 						});
 					ComponentCommons::addComponent<MovmentAI>(entity1, false, false);
 					G::gCoordinator.AddComponent<EntitySpecific>(entity1, EntitySpecific{
-					.id = ENTITY_ID::ENEMY_ID
+					.id = ID_ENTITY::ENEMY_ID
 						});
 					G::gCoordinator.AddComponent<TimerComponent>(entity1, TimerComponent{});
 					ComponentCommons::addComponent<Damage>(entity1, 5, 5);

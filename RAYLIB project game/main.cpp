@@ -167,7 +167,7 @@ int main() {
         .toBeDamaged = false
         });
     G::gCoordinator.AddComponent<EntitySpecific>(G::player, EntitySpecific{
-        .id = ENTITY_ID::PLAYER_ID
+        .id = ID_ENTITY::PLAYER_ID
         });
     G::gCoordinator.AddComponent<TimerComponent>(G::player, TimerComponent{});
     ComponentCommons::addComponent<Damage>(G::player, 5, 5);

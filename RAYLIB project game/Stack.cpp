@@ -4,6 +4,7 @@
 #include "Components.h"
 #include "FunctionalBox.h"
 #include "utils.hpp"
+#include "spatialHash/grid.h"
 
 inline void StackFunctions::PlayGame() {
     G::window.ClearBackground(raylib::Color::DarkGray());
@@ -17,7 +18,7 @@ inline void StackFunctions::PlayGame() {
         spatial_hash::gGird.drawGrid();
         spatial_hash::gGird.drawPopulatedTiles();
     }
-
+    
     if (G::GameIsPlaying) {
         std::any_cast<std::shared_ptr<RenderSystem>>(G::renderSystem)->updateSprites();
         std::any_cast<std::shared_ptr<PhysicsSystem>>(G::physicsSystem)->update(GetFrameTime());

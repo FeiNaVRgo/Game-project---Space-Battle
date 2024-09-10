@@ -3,10 +3,14 @@
 #include <Eigen/core>
 #include "../spatialHash/types.h"
 #include "../spatialHash/hash.h"
-#include "../ECS.h"
+#include "../Components.h"
 #include "../globals.h"
+#include "../EntityIds.h"
 #include <unordered_map>
 #include <set>
+#include <optional>
+#include <type_traits>
+
 
 namespace spatial_hash {
 	struct Tile {
@@ -14,10 +18,11 @@ namespace spatial_hash {
 	};
 
 	class Grid {
-	private:
+	public:
 		using Entity = ECS::Entity;
 		using Rect = raylib::Rectangle;
 		using vec = raylib::Vector2;
+	private:
 
 		LongIndexHashMap<Tile> tileMap;
 		int tileSize;
@@ -158,6 +163,37 @@ namespace spatial_hash {
 			}
 
 			return entityQuery;
+		}
+		
+
+		std::optional<Entity> queryNearestEntityById(vec pos, float radius, ID_ENTITY entityId) {
+			std::list<Entity> entityListWithId;
+
+			for (auto const& entity : query(pos, radius)) {
+				auto const& entitySpecific = G::gCoordinator.GetComponent<EntitySpecific>(entity);
+				if (entitySpecific.id == entityId) {
+					entityListWithId.emplace_back(entity);
+				}
+			}
+
+			if (entityListWithId.empty()) {
+				return std::nullopt;
+			}
+
+			auto dist = std::numeric_limits<float>::max();
+			Entity entityToGive{};
+
+			for (auto const& entity : entityListWithId) {
+				auto const& transform = G::gCoordinator.GetComponent<Transforms>(entity);
+				auto dist_temp = Vector2Distance(pos, transform.position);
+
+				if (dist_temp < dist) {
+					dist = dist_temp;
+					entityToGive = entity;
+				}
+			}
+
+			return std::optional<Entity>{entityToGive};
 		}
 		
 		void clearAllTiles() {

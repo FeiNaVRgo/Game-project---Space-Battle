@@ -1,6 +1,6 @@
 #pragma once
 
-enum ENTITY_ID {
+enum class ID_ENTITY {
 	PLAYER_ID              = 0,
 	ENEMY_ID               = 1,
 	PLAYER_BULLET_ID       = 2,
