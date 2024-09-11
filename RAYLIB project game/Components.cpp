@@ -1,6 +1,44 @@
 #include "Components.h"
 #include "spatialHash/grid.h"
 
+inline void ComponentCommons::createBullet(ECS::Entity parent,
+	Transforms      const& transforms,
+	RigidBody       const& rigidBody,
+	Sprite          const& sprite,
+	Health          const& health,
+	Bullet          const& bullet,
+	EntitySpecific  const& entitySpecific,
+	TimerComponent  const& timerComponent,
+	Damage          const& damage,
+	MovmentAI       const& movmentAI) {
+		//transforms
+		//rigidbody
+		//sprite
+		//health
+		//bullet
+		//entityspecigic
+		//timercomponent
+		//damage
+		//movmentAI
+		//JustBorn
+	ECS::Entity entity = G::gCoordinator.CreateEntity();
+
+	G::gCoordinator.AddComponent<Transforms>     (entity, Transforms         (transforms));
+	G::gCoordinator.AddComponent<RigidBody>      (entity, RigidBody           (rigidBody));
+	G::gCoordinator.AddComponent<Sprite>         (entity, Sprite                 (sprite));
+	G::gCoordinator.AddComponent<Health>         (entity, Health                 (health));
+	G::gCoordinator.AddComponent<Bullet>         (entity, Bullet                 (bullet));
+	G::gCoordinator.AddComponent<EntitySpecific> (entity, EntitySpecific (entitySpecific));
+	G::gCoordinator.AddComponent<TimerComponent> (entity, TimerComponent (timerComponent));
+	G::gCoordinator.AddComponent<Damage>         (entity, Damage                 (damage));
+	G::gCoordinator.AddComponent<MovmentAI>      (entity, MovmentAI           (movmentAI));
+	
+	ComponentCommons::addComponent<JustBorn>(entity, parent, transforms.position, raylib::Vector2{ sinf(sprite.angle), -cosf(sprite.angle) }, sprite.angle, GetTime());
+
+	auto& t = G::gCoordinator.GetComponent<RigidBody>(entity);
+	spatial_hash::gGird.insert(entity, t.hitbox.hitboxRect);
+}
+
 raylib::Vector2 Hitbox::getHitBoxCenter() {
 	return hitboxRect.GetPosition() + hitboxRect.GetSize() * 0.5f;
 }
@@ -536,6 +574,7 @@ inline void WeaponSystem::createWeaponNormalCanon(Inventory& inv, WeaponMini& we
 	G::gCoordinator.AddComponent<EntitySpecific>(canonNormal, EntitySpecific{
 		.id = ID_ENTITY::WEAPON_ID
 		});
+	G::gCoordinator.AddComponent<TimerComponent>(canonNormal, TimerComponent{});
 
 	weaponMini.ptrWeaponNormal = std::make_shared<ECS::Entity>(canonNormal);
 }
@@ -586,7 +625,11 @@ inline void WeaponSystem::createWeaponMiniCanon() {
 inline void WeaponSystem::behaviourWeaponNormalCanon(ECS::Entity weaponNormalEntity) {
 	auto const& transforms_weapon = G::gCoordinator.GetComponent<Transforms>(weaponNormalEntity);
 	auto& sprite_weapon = G::gCoordinator.GetComponent<Sprite>(weaponNormalEntity);
+	auto& timer_weapon = G::gCoordinator.GetComponent<TimerComponent>(weaponNormalEntity);
+	auto& normal_weapon = G::gCoordinator.GetComponent<WeaponNormal>(weaponNormalEntity);
 	
+	timer_weapon.timerCont.insertTimer(1, Timer(800, TIMER_ID::WAITTIMER_ID));
+
 	auto targetedEntity = spatial_hash::gGird.queryNearestEntityById(transforms_weapon.position, 800.0f, ID_ENTITY::ENEMY_ID);
 
 	if (targetedEntity.has_value()) {
@@ -599,6 +642,54 @@ inline void WeaponSystem::behaviourWeaponNormalCanon(ECS::Entity weaponNormalEnt
 		float angle = atan2f(v.x, -v.y);
 
 		sprite_weapon.angle = angle;
+	
+		if (timer_weapon.timerCont.checkTimer(1)) {
+			timer_weapon.timerCont.resetTimer(1);
+			//TODO -- creation of bullets should be in seperate function
+			ComponentCommons::createBullet(weaponNormalEntity,
+				Transforms{
+				.position = transforms_weapon.position,
+				.rotation = raylib::Vector2(0.0f, 0.0f),
+				.scale = raylib::Vector2(1.0f, 1.0f),
+				},
+				RigidBody{
+				.velocity = raylib::Vector2(0.0f, 0.0f),
+				.acceleration = raylib::Vector2(0.0f, 0.0f),
+				.hitbox = {{0.0f, 0.0f, 18.0f, 18.0f}, raylib::Color::Green()},
+				.isColliding = false,
+				.onWhatSideIsColliding = {false ,false ,false ,false }
+				},
+				Sprite{
+				.sprite = normal_weapon.bulletSprite,
+				.angle = angle,
+				.tint = {255, 255, 255, 255},
+				.origin = raylib::Vector2(normal_weapon.bulletSprite.width * 0.5f, normal_weapon.bulletSprite.height * 0.5f)
+				},
+				Health{
+			   .maxHealth = 5.0f,
+			   .health = 5.0f,
+			   .isDamaged = false,
+			   .frameImmunityTime = 1,
+			   .healthToSubstract = 0.0f,
+			   .toBeDamaged = false
+				},
+				Bullet{
+				},
+				EntitySpecific{
+				.id = ID_ENTITY::PLAYER_BULLET_ID
+				},
+				TimerComponent{
+				},
+				Damage{
+					.damage = 5.f,
+					.damageOnContact = 5.f
+				},
+				MovmentAI{
+					.DistanceH = false,
+					.DistanceW = false
+				}
+			);
+		}
 	}
 	else {
 		sprite_weapon.angle = 0.0f;
@@ -900,7 +991,7 @@ void BulletManipulationSystem::update() {
 		auto& justBorn = G::gCoordinator.GetComponent<JustBorn>(entity);
 		auto& bullet = G::gCoordinator.GetComponent<Bullet>(entity);
 
-		movmentAI.moveInLineOfFunc(200.0f, entity, std::vector<float>{500.f, 600.f}, MovmentAI::sinwaveExactFunc);//func neads to be zeroed to follow bornAngle path
+		movmentAI.moveInLineOfFunc(200.0f, entity, std::vector<float>{DEG2RAD * sprite.angle}, MovmentAI::straightLineFunc);
 
 		if (!raylib::containsRect(G::gridRect, rigidBody.hitbox.hitboxRect)) {
 			health.health = 0.0f;

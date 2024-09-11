@@ -23,13 +23,6 @@
 static std::random_device rd;
 static std::mt19937 gen(rd());
 
-class ComponentCommons {
-public:
-	template<typename Component, typename... Types>
-	static inline void addComponent(ECS::Entity entity, Types... args) {
-		G::gCoordinator.AddComponent<Component>(entity, Component(args...));
-	}
-};
 
 class Hitbox {
 public:
@@ -297,6 +290,11 @@ struct MovmentAI {
 	*/
 	static double parabolicExactFunc(double x, std::vector<float> params);
 	
+	/**
+	* @brief y = ax
+	* @brief if using angle of sprite multiply angle by DEG2RAD macro
+	* @param 0 for a
+	*/
 	static double straightLineFunc(double x, std::vector<float> params);
 
 	/**
@@ -311,6 +309,25 @@ struct MovmentAI {
 	* TODO
 	*/
 	void moveInLineOfFuncAndGoBack(float speed, ECS::Entity anchor, std::vector<float> params, raylib::RealFunc f, raylib::Vector2 whereToDestroy);
+};
+
+class ComponentCommons {
+public:
+	template<typename Component, typename... Types>
+	static inline void addComponent(ECS::Entity entity, Types... args) {
+		G::gCoordinator.AddComponent<Component>(entity, Component(args...));
+	}
+
+	static void createBullet(ECS::Entity parent,
+		Transforms      const& transforms,
+		RigidBody       const& rigidBody,
+		Sprite          const& sprite,
+		Health          const& health,
+		Bullet          const& bullet,
+		EntitySpecific  const& entitySpecific,
+		TimerComponent  const& timerComponent,
+		Damage          const& damage,
+		MovmentAI       const& movmentAI);
 };
 
 struct UpgradeSystem : public ECS::System {
