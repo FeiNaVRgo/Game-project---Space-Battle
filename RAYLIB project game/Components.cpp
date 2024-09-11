@@ -992,6 +992,7 @@ void BulletManipulationSystem::update() {
 		auto& bullet = G::gCoordinator.GetComponent<Bullet>(entity);
 
 		movmentAI.moveInLineOfFunc(200.0f, entity, std::vector<float>{DEG2RAD * sprite.angle}, MovmentAI::straightLineFunc);
+		//movmentAI.moveInLineOfFunc(200.0f, entity, std::vector<float>{500.f, 500.f}, MovmentAI::sinwaveExactFunc);
 
 		if (!raylib::containsRect(G::gridRect, rigidBody.hitbox.hitboxRect)) {
 			health.health = 0.0f;
