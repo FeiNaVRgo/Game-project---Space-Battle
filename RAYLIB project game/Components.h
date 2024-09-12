@@ -317,8 +317,11 @@ public:
 	static inline void addComponent(ECS::Entity entity, Types... args) {
 		G::gCoordinator.AddComponent<Component>(entity, Component(args...));
 	}
-
-	static void createBullet(ECS::Entity parent,
+};
+namespace ENTITY_CREATION_FUNCTIONS {
+	//parent, pos, hitbox - dimensions, sprite, angle, maxHealth, damage
+	//maybe setup for multishoot
+	extern void createBullet(ECS::Entity parent,
 		Transforms      const& transforms,
 		RigidBody       const& rigidBody,
 		Sprite          const& sprite,
@@ -328,8 +331,7 @@ public:
 		TimerComponent  const& timerComponent,
 		Damage          const& damage,
 		MovmentAI       const& movmentAI);
-};
-
+}
 struct UpgradeSystem : public ECS::System {
 
 };
@@ -351,10 +353,6 @@ struct WeaponSystem : ECS::System {
 	void update();
 	
 	void weaponInvVibeCheck(Inventory const& inv, WeaponLibrary const& weaponLibrary);
-	
-	static void createWeaponMiniCanon();
-	static void createWeaponNormalCanon(Inventory& inv, WeaponMini& weaponMini); //make this creation / destruction / behaviour a class of functions weapon -> derived from abstract class
-	static void behaviourWeaponNormalCanon(ECS::Entity weaponNormalEntity);
 };
 
 struct WeaponLibrary {

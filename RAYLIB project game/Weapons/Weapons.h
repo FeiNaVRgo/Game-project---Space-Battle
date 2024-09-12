@@ -1,6 +1,5 @@
 #pragma once
 #include "../globals.h"
-#include "../Components.h"
 #include "../ECS.h"
 #include <unordered_map>
 #include <memory>
@@ -53,6 +52,23 @@ struct WeaponType {
 	ID_WEAPON_TYPE id;//1
 };
 
-struct Weapon {
+struct Inventory;
 
-};
+namespace WEAPON_DEFINITIONS {
+	namespace WEAPON_COMMONS {
+		extern void entityAngleToPos(raylib::Vector2 const& entityPos, float& angle, raylib::Vector2 const& pos);
+		extern std::optional<raylib::Vector2> findEmptySlot(Inventory& inv, raylib::Texture2DUnmanaged const& sprite, ECS::Entity WeaponMini);
+	}
+
+	namespace CANON {
+		extern void createWeaponMini();
+		extern void createWeaponNormal(Inventory& inv, WeaponMini& weaponMini);
+		extern void behaviourWeaponNormal(ECS::Entity weaponNormalEntity);
+	}
+
+	namespace MINIGUN {
+		extern void createWeaponMini();
+		extern void createWeaponNormal(Inventory& inv, WeaponMini& weaponMini);
+		extern void behaviourWeaponNormal(ECS::Entity weaponNormalEntity);
+	}
+}

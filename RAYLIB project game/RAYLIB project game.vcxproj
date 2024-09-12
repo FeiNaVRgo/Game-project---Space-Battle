@@ -155,6 +155,7 @@
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="UI.cpp" />
     <ClCompile Include="utils.cpp" />
+    <ClCompile Include="Weapons\Weapons.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="resources\DEFAULT_TEXTURE.png" />
