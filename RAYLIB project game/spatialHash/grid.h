@@ -3,7 +3,8 @@
 #include <Eigen/core>
 #include "../spatialHash/types.h"
 #include "../spatialHash/hash.h"
-#include "../Components.h"
+#include "../Components/EntitySpecific.h"
+#include "../Components/Transforms.h"
 #include "../globals.h"
 #include "../EntityIds.h"
 #include <unordered_map>

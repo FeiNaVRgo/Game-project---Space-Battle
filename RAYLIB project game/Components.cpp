@@ -1,5 +1,32 @@
 #include "Components.h"
+
 #include "spatialHash/grid.h"
+#include "globals.h"
+
+#include "./Weapons/Weapons.h"
+#include "EntityIds.h"
+
+#include "Components/Transforms.h"
+#include "Components/RigidBody.h"
+#include "Components/Health.h"
+#include "Components/Bullet.h"
+#include "Components/EntitySpecific.h"
+#include "Components/TimerComponent.h"
+#include "Components/Damage.h"
+#include "Components/PlayerSpecific.h"
+#include "Components/ComponentsCommons.h"
+#include "Components/Enemy.h"
+#include "Components/JustBorn.h"
+#include "Components/Sprite.h"
+#include "Components/MovmentAI.h"
+
+
+#include "Components/Inventory.h"
+
+#include "Timer.h"
+
+#include "GeometryCalc.hpp"
+#include "utils.hpp"
 
 inline void ENTITY_CREATION_FUNCTIONS::createBullet(ECS::Entity parent,
 	Transforms      const& transforms,
@@ -39,408 +66,6 @@ inline void ENTITY_CREATION_FUNCTIONS::createBullet(ECS::Entity parent,
 	spatial_hash::gGird.insert(entity, t.hitbox.hitboxRect);
 }
 
-raylib::Vector2 Hitbox::getHitBoxCenter() {
-	return hitboxRect.GetPosition() + hitboxRect.GetSize() * 0.5f;
-}
-
-inline void Sprite::draw(ECS::Entity entity) {
-	auto& sprite = G::gCoordinator.GetComponent<Sprite>(entity);
-	auto& transform = G::gCoordinator.GetComponent<Transforms>(entity);
-
-	sprite.sprite.Draw(
-		raylib::Rectangle(0.0f, 0.0f, sprite.sprite.width, sprite.sprite.height),
-		raylib::Rectangle(transform.position.x, transform.position.y, sprite.sprite.width, sprite.sprite.height),
-		raylib::Vector2(sprite.origin),
-		sprite.angle * RAD2DEG,
-		sprite.tint
-	);
-}
-
-Sprite::~Sprite(){}
-
-void Health::drawHealthBar(const raylib::Vector2& origin, const raylib::Vector2& offsetFromOrigin) {
-	raylib::Rectangle r1 = { origin + offsetFromOrigin - raylib::Vector2(maxHealth / 2.0f, 0), raylib::Vector2(maxHealth, 4) };
-	raylib::Rectangle r2 = { origin + offsetFromOrigin - raylib::Vector2(maxHealth / 2.0f, 0), raylib::Vector2(health, 4) - raylib::Vector2(1, 1) };
-	r2.Draw(BLUE);
-	r1.DrawLines(BLACK);
-}
-
-void Health::drawDamageIndicator(){}
-
-Inventory::Inventory(){
-	populateAllSlots();
-	SetSlotsPos();
-}
-
-void Inventory::populateWeapons() {
-	for (int i = 0; i < 4; i++) {
-		addSlotWeapon();
-	}
-}
-
-void Inventory::populateInventory() {
-	for (int i = 0; i < 12; i++) {
-		addSlotInventory();
-	}
-}
-
-void Inventory::populateAllSlots() {
-	allSlots.push_back({ SLOT_IMPL::ACTIVE, SLOT_STATE::STATE_EMPTY, SLOT_PURPOSE::SLOT_CORE, {30.f, 30.f}, {0, 0, 0, 50}, nullptr, { 0.f, 0.f } });
-	populateWeapons();
-	populateInventory();
-}
-
-void Inventory::addSlotInventory() {
-	allSlots.push_back({ SLOT_IMPL::NONACTIVE, SLOT_STATE::STATE_EMPTY, SLOT_PURPOSE::SLOT_IVNENTORY, { 30.0f, 30.0f }, { 0, 0, 0, 50 }, nullptr, { 0.f, 0.f } });
-	invSize++;
-}
-
-void Inventory::addSlotWeapon() {
-	allSlots.push_back({ SLOT_IMPL::ACTIVE, SLOT_STATE::STATE_EMPTY, SLOT_PURPOSE::SLOT_WEAPON, { 30.f, 30.f }, { 0, 0, 0, 50 }, nullptr, { 0.f, 0.f } });
-	weaponSize++;
-}
-
-void Inventory::DrawSlot(const SlotDef& slot) {
-	raylib::Rectangle(slot.position, slot.dimensions).Draw(slot.slotCol);
-}
-
-void Inventory::DrawSlotOutline(const SlotDef& slot) {
-	raylib::Rectangle(slot.position, slot.dimensions).DrawLines(slot.slotCol);//TODO --diffrent colors for outline
-}
-
-void Inventory::DrawVecSlot(const std::vector<SlotDef>& vecSlot, bool drawOutline, bool drawSlot) {
-	for (const auto& slot : vecSlot) {
-		if (drawSlot) {
-			DrawSlot(slot);
-		}
-
-		if (drawOutline) {
-			DrawSlotOutline(slot);
-		}
-	}
-}
-
-void Inventory::SetSlotsPos() {
-	float r = 70.0f;
-	
-
-	for (auto& slot : allSlots) {
-		if (slot.slotPurpuse == SLOT_PURPOSE::SLOT_CORE) {
-			slot.position = raylib::getCenterRect(inventoryBase) - slot.dimensions / 2.0f;
-			break;
-		}
-	}
-	//slotCore.position = raylib::getCenterRect(inventoryBase) - slotCore.dimensions / 2.0f;
-	
-	
-	int weaponCount = 0;
-	for (auto it = allSlots.begin(); it != allSlots.end(); ++it) {
-		//auto i = std::distance(allSlots.begin(), it);
-		if (it->slotPurpuse == SLOT_PURPOSE::SLOT_WEAPON) {
-			float angle = DEG2RAD * (static_cast<float>(weaponCount) * 360.0f / static_cast<float>(weaponSize));
-
-			it->position = raylib::Vector2{ std::floor(r * cosf(angle)), std::floor(r * sinf(angle)) } + raylib::getCenterRect(inventoryBase) - it->dimensions / 2.0f;
-			weaponCount++;
-		}
-	}
-
-	float totalWidth = 0.f;
-	float y = 0.f;//for the current level of lines in inventory
-	float maxWidth = 0.f;//for later centering of position in invBase
-	for (auto it = allSlots.begin(); it != allSlots.end(); ++it) {
-		//auto i = std::distance(slotsInv.begin(), it); //just in case when i want to change something
-		if (it->slotPurpuse == SLOT_PURPOSE::SLOT_IVNENTORY) {
-			if (totalWidth + it->dimensions.x >= INVENTORY_WIDTH) {//without additiion it fucks up
-				maxWidth = totalWidth;
-				totalWidth = 0.0f;
-				y++;
-			}
-
-			it->position = { totalWidth, y * it->dimensions.y };
-			totalWidth += it->dimensions.x;
-		}
-	}
-
-	for (auto& slot : allSlots) {
-		if (slot.slotPurpuse == SLOT_PURPOSE::SLOT_IVNENTORY) {
-			slot.position.x += inventoryBase.GetPosition().x + (INVENTORY_WIDTH - maxWidth) / 2.0f;
-			slot.position.y += allSlots.at(0).position.y + r + 60.f;//at(0) means slot core
-		}
-	}
-}
-
-void Inventory::InteractWithSlot(SlotDef& slot) {
-	if (slot.ptrItem != nullptr) {
-		auto& miniWeapon = G::gCoordinator.GetComponent<WeaponMini>(*slot.ptrItem);
-		auto const& sprite= G::gCoordinator.GetComponent<Sprite>(*slot.ptrItem);
-		auto const& transform = G::gCoordinator.GetComponent<Transforms>(*slot.ptrItem);
-
-		if (IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_LEFT) && miniWeapon.isSelected) {
-			miniWeapon.isSelected = false;
-			miniWeapon.afterSelecting = true;
-		}
-
-		if (raylib::Rectangle(slot.position, slot.dimensions).CheckCollision(GetMousePosition()) && IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_LEFT)) {
-			miniWeapon.isSelected = true;
-		}
-	}
-}
-
-void Inventory::swapItemSlots(SlotDef& slot1, SlotDef& slot2) {
-	auto temp_slot = slot2;
-	slot2.ptrItem = slot1.ptrItem;
-	slot1.ptrItem = temp_slot.ptrItem;
-}
-
-void Inventory::moveUptrItem(std::vector<SlotDef>& vecSlot, ECS::Entity entity) {
-	auto& miniWeapon = G::gCoordinator.GetComponent<WeaponMini>(entity);
-	auto& transforms = G::gCoordinator.GetComponent<Transforms>(entity);
-	auto& sprite = G::gCoordinator.GetComponent<Sprite>(entity);
-	auto& inventory = G::gCoordinator.GetComponent<Inventory>(G::player);
-
-	//TODO -- fix memory leak
-
-	auto spriteRect = raylib::Rectangle(transforms.position - sprite.origin, sprite.sprite.GetSize());
-	Inventory::SlotDef* t_slot = new Inventory::SlotDef;
-
-	for (auto& slot : allSlots) {
-		if (slot.ptrItem != nullptr && *(slot.ptrItem) == entity) {
-			t_slot = &slot;
-
-			//takes care of deleting normal weapon from slot_weappon - creawting is takken care in vibecheck function
-			//yippe
-			if (slot.slotPurpuse == Inventory::SLOT_PURPOSE::SLOT_WEAPON) {
-				auto& weaponMini = G::gCoordinator.GetComponent<WeaponMini>(*slot.ptrItem);
-				if (weaponMini.isNormalInWorld) {
-					auto& weaponNormal = G::gCoordinator.GetComponent<WeaponNormal>(*weaponMini.ptrWeaponNormal);
-					G::gEntitySetToBeDestroyed.insert(*weaponMini.ptrWeaponNormal);
-					weaponMini.ptrWeaponNormal = nullptr;
-					weaponMini.isNormalInWorld = false;
-				}
-			}
-
-			std::cout << "here1\n";
-		}
-	}
-
-	for (auto& slot : vecSlot) {
-		if (raylib::areaOfRectangle(raylib::Rectangle(slot.position, slot.dimensions).GetCollision(spriteRect)) >= 0.5f * raylib::areaOfRectangle(spriteRect)) {
-			miniWeapon.posToStay = slot.position + raylib::Vector2(sprite.sprite.GetSize()) * 0.5f;
-			miniWeapon.afterSelecting = false;
-
-			inventory.swapItemSlots(*t_slot, slot);
-
-			std::cout << "here\n";
-
-			break;
-		}
-	}
-
-	//delete t_slot;
-}
-
-void Inventory::copySlotPtr(SlotDef& slot, std::shared_ptr<SlotDef> target) {
-	target = std::make_shared<SlotDef>(slot);
-}
-
-void Inventory::copySlotPtr(SlotDef& slot, SlotDef* target) {
-	target = &slot;
-}
-
-void Inventory::copySlotVecPtr(std::vector<SlotDef>& slotVec, std::vector<std::shared_ptr<SlotDef>>& target) {
-	for (auto const& slot : slotVec) {
-		target.push_back(std::make_shared<SlotDef>(slot));
-	}
-}
-
-void Inventory::copySlotVecPtr(std::vector<SlotDef>& slotVec, std::vector<SlotDef*>& target) {
-	for (auto& slot : slotVec) {
-		target.push_back(&slot);
-	}
-}
-
-void Inventory::DrawSprites() {
-	EndMode2D();
-	for (auto& slot : allSlots) {
-		if (slot.ptrItem != nullptr) {
-			Sprite::draw(*slot.ptrItem);
-		}
-	}
-	BeginMode2D(G::camera);
-}
-
-void Inventory::DrawAllSlots() {
-	if (G::debugMode) {
-		auto v = raylib::getCenterRect(inventoryBase);
-		DrawCircleLines(v.x, v.y, 70.0f, RED);
-	}
-
-	inventoryBase.Draw({ 0, 0, 0, 100 });
-	DrawVecSlot(allSlots, true);
-}
-
-void Inventory::InteractWithSlots() {
-	for (auto& slot : allSlots) {
-		InteractWithSlot(slot);
-	}
-}
-
-void Inventory::updateSlots() {
-	//TODO
-}
-
-void  MovmentAI::chase(const raylib::Vector2& pos, const raylib::Vector2& posToChase, raylib::Vector2& velocity, float& angle, float speed, float seeRadius) {
-	float distance = Vector2Distance(pos, posToChase);
-	if (distance <= seeRadius) {
-		raylib::Vector2 v = { (posToChase.x - pos.x) / distance,
-							  (posToChase.y - pos.y) / distance };
-		angle = atan2f(v.x, -v.y);
-
-		velocity.x = sinf(angle) * speed;
-		velocity.y = -cosf(angle) * speed;
-	}
-	else {
-		velocity = { 0.0f, 0.0f };
-	}
-}
-
-inline double MovmentAI::sinwaveExactFunc(double x, std::vector<float> params) {
-	return params.at(1) * sinf(static_cast<float>(x * (PI / params.at(0))));
-}
-
-inline double MovmentAI::sinwaveFunc(double x, std::vector<float> params) {
-	return params.at(1) * sinf(static_cast<float>(x) * params.at(0));
-}
-
-inline double MovmentAI::parabolicFunc(double x, std::vector<float> params) {
-	return params.at(0) * x * x + params.at(1) * x;
-}
-
-inline double MovmentAI::parabolicExactFunc(double x, std::vector<float> params) {
-	float T = params.at(0);
-	float H = params.at(1);
-
-	double c = T / 2.0f;
-	double a = H / (c * c);
-	double b = H;
-
-	return -(a * (x - c) * (x - c)) + b;
-}
-
-inline double MovmentAI::straightLineFunc(double x, std::vector<float> params) {
-	return params.at(0) * x;
-}
-
-void MovmentAI::moveInLineOfFunc(float speed, ECS::Entity anchor, std::vector<float> params, raylib::RealFunc f) {
-	auto& born = G::gCoordinator.GetComponent<JustBorn>(anchor);
-	auto& transform = G::gCoordinator.GetComponent<Transforms>(anchor);
-	auto& rigidBody = G::gCoordinator.GetComponent<RigidBody>(anchor);
-	auto& sprite = G::gCoordinator.GetComponent<Sprite>(anchor);
-
-	auto vel2 = born.bornVel.Rotate(-PI / 2.0f);
-	auto vel3 = born.bornVel.Rotate(PI / 2.0f);
-
-	raylib::Ray rayBorn1(Vector3{ born.bornPos.x, born.bornPos.y, 0 }, Vector3{ born.bornVel.x, born.bornVel.y, 0.0f });
-	raylib::Ray rayBorn2(Vector3{ transform.position.x, transform.position.y, 0 }, Vector3{ vel2.x, vel2.y, 0.0f });
-	raylib::Ray rayBorn3(Vector3{ transform.position.x, transform.position.y, 0 }, Vector3{ vel3.x, vel3.y, 0.0f });
-
-	if (G::debugMode) {
-		rayBorn1.Draw(RED);
-		rayBorn2.Draw(RED);
-		rayBorn3.Draw(RED);
-	}
-
-	auto translatedX1 = raylib::intersectsRayToRay(rayBorn1, rayBorn2);
-	auto translatedX2 = raylib::intersectsRayToRay(rayBorn1, rayBorn3);
-
-	if (!translatedX1.empty()) {
-		raylib::Vector2 vecTX{ translatedX1.front().x, translatedX1.front().y };
-		if (G::debugMode)
-			vecTX.DrawCircle(10, BLUE);
-
-		auto x = Vector2Distance(vecTX, born.bornPos);
-		sprite.angle = atanf(raylib::derivative(f, x, params)) + born.bornAngle;
-
-		rigidBody.velocity.x = sinf(sprite.angle) * speed;
-		rigidBody.velocity.y = -cosf(sprite.angle) * speed;
-	}
-	else if (!translatedX2.empty()) {
-		raylib::Vector2 vecTX{ translatedX2.front().x, translatedX2.front().y };
-		if (G::debugMode)
-			vecTX.DrawCircle(10, BLUE);
-
-		auto x = Vector2Distance(vecTX, born.bornPos);
-		sprite.angle = atanf(raylib::derivative(f, x, params)) + born.bornAngle;
-
-		rigidBody.velocity.x = sinf(sprite.angle) * speed;
-		rigidBody.velocity.y = -cosf(sprite.angle) * speed;
-	}
-}
-
-void MovmentAI::moveInLineOfFuncAndGoBack(float speed, ECS::Entity anchor, std::vector<float> params, raylib::RealFunc f, raylib::Vector2 whereToDestroy) {
-	auto& born = G::gCoordinator.GetComponent<JustBorn>(anchor);
-	auto& transform = G::gCoordinator.GetComponent<Transforms>(anchor);
-	auto& rigidBody = G::gCoordinator.GetComponent<RigidBody>(anchor);
-	auto& sprite = G::gCoordinator.GetComponent<Sprite>(anchor);
-
-	auto vel2 = born.bornVel.Rotate(-PI / 2.0f);
-	auto vel3 = born.bornVel.Rotate(PI / 2.0f);
-
-	raylib::Ray rayBorn1(Vector3{ born.bornPos.x, born.bornPos.y, 0 }, Vector3{ born.bornVel.x, born.bornVel.y, 0.0f });
-	raylib::Ray rayBorn2(Vector3{ transform.position.x, transform.position.y, 0 }, Vector3{ vel2.x, vel2.y, 0.0f });
-	raylib::Ray rayBorn3(Vector3{ transform.position.x, transform.position.y, 0 }, Vector3{ vel3.x, vel3.y, 0.0f });
-
-	rayBorn1.Draw(RED);
-	rayBorn2.Draw(RED);
-	rayBorn3.Draw(RED);
-
-	auto translatedX1 = raylib::intersectsRayToRay(rayBorn1, rayBorn2);
-	auto translatedX2 = raylib::intersectsRayToRay(rayBorn1, rayBorn3);
-
-	if (!translatedX1.empty()) {
-		raylib::Vector2 vecTX{ translatedX1.front().x, translatedX1.front().y };
-		vecTX.DrawCircle(10, BLUE);
-		
-		auto x = Vector2Distance(vecTX, born.bornPos);
-		sprite.angle = atanf(raylib::derivative(f, x, params)) + born.bornAngle;
-
-		if (x < params.at(0) && transform.position.x != 9) {
-			rigidBody.velocity.x = sinf(sprite.angle) * speed;
-			rigidBody.velocity.y = -cosf(sprite.angle) * speed;
-		}
-		else {
-			if (!DistanceH) {
-				DistanceH = true;
-			}
-			rigidBody.velocity.x = -sinf(sprite.angle) * speed;
-			rigidBody.velocity.y = -cosf(sprite.angle) * speed;
-		}
-	}
-	else if (!translatedX2.empty()) {
-		raylib::Vector2 vecTX{ translatedX2.front().x, translatedX2.front().y };
-		vecTX.DrawCircle(10, BLUE);
-
-		auto x = Vector2Distance(vecTX, born.bornPos);
-		sprite.angle = atanf(raylib::derivative(f, x, params)) + born.bornAngle;
-
-		if (x < params.at(0) && transform.position.x != 9) {
-			rigidBody.velocity.x = sinf(sprite.angle) * speed;
-			rigidBody.velocity.y = -cosf(sprite.angle) * speed;
-		}
-		else {
-			if (!DistanceH) {
-				DistanceH = true;
-			}
-			rigidBody.velocity.x = -sinf(sprite.angle) * speed;
-			rigidBody.velocity.y = -cosf(sprite.angle) * speed;
-		}
-	}
-
-	if (whereToDestroy.CheckCollision(rigidBody.hitbox.hitboxRect) && DistanceH) {
-		G::gEntitySetToBeDestroyed.insert(anchor);
-	}
-}
-
 void PhysicsSystem::update(float dt) {
 	for (auto const& entity : mEntities) {
 		auto& rigidBody = G::gCoordinator.GetComponent<RigidBody>(entity);
@@ -465,7 +90,7 @@ void RenderSystem::updateSprites() {
 		auto& sprite = G::gCoordinator.GetComponent<Sprite>(entity);
 		
 		if (!sprite.isDependent) {
-			Sprite::draw(entity);
+			sprite.draw(entity);
 		}
 
 		G::gridRect.DrawLines(raylib::Color::Blue());

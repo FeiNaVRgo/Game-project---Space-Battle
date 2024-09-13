@@ -1,8 +1,11 @@
 #pragma once
-#include "../globals.h"
-#include "../ECS.h"
+#include <src/raylib-cpp.hpp>
 #include <unordered_map>
 #include <memory>
+#include <optional>
+#include "../ECS.h"
+
+struct Inventory;
 
 enum class ID_WEAPON_TYPE {
 	NORMAL = 1,
@@ -40,7 +43,7 @@ struct WeaponMini {
 	bool afterSelecting = false;
 	bool isNormalInWorld = false;
 
-	raylib::Vector2 posToStay{};
+	raylib::Vector2 posToStay;
 };
 
 struct WeaponNormal {

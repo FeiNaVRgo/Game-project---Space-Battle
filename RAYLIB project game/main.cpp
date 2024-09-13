@@ -1,4 +1,4 @@
-#include <src\raylib-cpp.hpp>
+#include <src/raylib-cpp.hpp>
 #include <string>
 #include "globals.h"
 #include "ECS.h"
@@ -6,6 +6,10 @@
 #include "utils.hpp"
 #include "UI.h"
 #include "EventManager.h"
+
+#include "Components/all.h"
+#include "Weapons/Weapons.h"
+#include "spatialHash/grid.h"
 
 #if defined(PLATFORM_DESKTOP)
 #define GLSL_VERSION            330

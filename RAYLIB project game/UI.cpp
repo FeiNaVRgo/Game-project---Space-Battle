@@ -1,5 +1,8 @@
 #include "UI.h"
 
+#include "Components/Health.h"
+#include "Components/Inventory.h"
+
 #include "globals.h"
 #include "utils.hpp"
 #include "FunctionalBox.h"

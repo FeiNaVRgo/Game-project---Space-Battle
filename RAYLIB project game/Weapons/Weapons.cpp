@@ -1,6 +1,18 @@
 #include "./Weapons.h"
-#include "../Components.h"
+#include "../globals.h"
 #include "../spatialHash/grid.h"
+
+#include "../Components.h"
+#include "../Components/Inventory.h"
+#include "../Components/Sprite.h"
+#include "../Components/Transforms.h"
+#include "../Components/EntitySpecific.h"
+#include "../Components/Damage.h"
+#include "../Components/TimerComponent.h"
+#include "../Components/RigidBody.h"
+#include "../Components/Health.h"
+#include "../Components/Bullet.h"
+#include "../Components/MovmentAI.h"
 
 inline void WEAPON_DEFINITIONS::WEAPON_COMMONS::entityAngleToPos(raylib::Vector2 const& entityPos, float& angle, raylib::Vector2 const& pos) {
 	float distance = Vector2Distance(entityPos, pos);

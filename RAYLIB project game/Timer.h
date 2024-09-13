@@ -2,7 +2,6 @@
 #include <chrono>
 #include <map>
 #include <functional>
-#include <iostream>
 
 enum TIMER_ID {
 	WAITTIMER_ID
