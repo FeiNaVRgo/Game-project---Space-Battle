@@ -18,16 +18,12 @@
 #endif
 
 int main() {
-    //TODO - more diffrent enemies + bosses - add coroutines for complex behaviour - 6
-    //TODO - UPGRADES - A LOT OF THEM - it will be like augments for ship and also little upgrades - 1
-    //TODO - gui(partially done) + for enemies and damage indicators - 1.5
-    //TODO - particle system- when I need this i will do this shit
-    //TODO - coroutines with lua - 3
-    //TODO - funny bullet behaviours - mayby try coroutines you lazy fuck - 4
-    //TODO - TURRESTS FOR PLAYER TO TRY THESE BULLETS BEHAVIOURS - PART OF UPGRADES SYSTEM - 5
-    //TODO - make script for generating code for upgrades -2
-    //maybe skill tree or some shit and multiple characters
-    //TODO - make application class so all globals are stored in there + make abstractions so main.cpp file is very small
+   //TODO -- split up component systems into separate files
+   //TODO -- application class for all global variables
+   //TODO -- namespace for components
+   //TODO -- texture manager class - will work on strings
+   //TODO -- more components should be tied to weapons -
+   //TODO -- script for weapons
     
     // Initialization
     //--------------------------------------------------------------------------------------

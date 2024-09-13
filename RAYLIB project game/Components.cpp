@@ -169,6 +169,8 @@ void WeaponSystem::weaponInvVibeCheck(Inventory const& inv, WeaponLibrary const&
 WeaponLibrary::WeaponLibrary() {
 	weaponMap.try_emplace(ID_WEAPON::ID_CANON, WEAPON_DEFINITIONS::CANON::createWeaponNormal);
 	weaponBehaviourMap.try_emplace(ID_WEAPON::ID_CANON, WEAPON_DEFINITIONS::CANON::behaviourWeaponNormal);
+	weaponMap.try_emplace(ID_WEAPON::ID_MINIGUN, WEAPON_DEFINITIONS::MINIGUN::createWeaponNormal);
+	weaponBehaviourMap.try_emplace(ID_WEAPON::ID_MINIGUN, WEAPON_DEFINITIONS::MINIGUN::behaviourWeaponNormal);
 }
  
 void InputSystem::update() {
@@ -200,6 +202,9 @@ void InputSystem::update() {
 
 		if (IsKeyPressed(KeyboardKey::KEY_C)) {
 			WEAPON_DEFINITIONS::CANON::createWeaponMini();
+		}
+		if (IsKeyPressed(KeyboardKey::KEY_V)) {
+			WEAPON_DEFINITIONS::MINIGUN::createWeaponMini();
 		}
 
 		if (IsKeyPressed(KeyInputs::DASH) && pSpecific.dash <= 1.0f) {

@@ -13,7 +13,8 @@ enum class ID_WEAPON_TYPE {
 };
 
 enum class ID_WEAPON {
-	ID_CANON
+	ID_CANON   = 0,
+	ID_MINIGUN = 1,
 };
 
 enum class ID_WEAPON_RARITY {

@@ -182,8 +182,151 @@ inline void WEAPON_DEFINITIONS::CANON::behaviourWeaponNormal(ECS::Entity weaponN
 	}
 }
 
-inline void WEAPON_DEFINITIONS::MINIGUN::createWeaponMini() {}
+inline void WEAPON_DEFINITIONS::MINIGUN::createWeaponMini() {
+	auto const& miniGunMini = G::gCoordinator.CreateEntity();
+	auto& inventory = G::gCoordinator.GetComponent<Inventory>(G::player);
 
-inline void WEAPON_DEFINITIONS::MINIGUN::createWeaponNormal(Inventory& inv, WeaponMini& weaponMini) {}
+	G::gCoordinator.AddComponent<WeaponType>(miniGunMini, WeaponType{
+		.id = ID_WEAPON_TYPE::MINI
+		});
+	G::gCoordinator.AddComponent<WeaponMini>(miniGunMini, WeaponMini{
+		.isHeld = false,
+		.isEquipped = false,
+		.rarity = ID_WEAPON_RARITY::EPIC,
+		.name = "OMNIPOTENT CANON",
+		.description = "A minigun to shred all enemies",
+		.id = ID_WEAPON::ID_MINIGUN
+		});
+	G::gCoordinator.AddComponent<Sprite>(miniGunMini, Sprite{
+		.sprite = G::weapon_mini_minigun,
+		.angle = 0.0f,
+		.tint {255, 255, 255, 255},
+		.origin = raylib::Vector2(G::weapon_mini_minigun.GetSize()) * 0.5f,
+		.isDependent = true
+		});
+	G::gCoordinator.AddComponent<EntitySpecific>(miniGunMini, EntitySpecific{
+		.id = ID_ENTITY::WEAPON_ID
+		});
 
-inline void WEAPON_DEFINITIONS::MINIGUN::behaviourWeaponNormal(ECS::Entity weaponNormalEntity) {}
+	auto p_pos = WEAPON_DEFINITIONS::WEAPON_COMMONS::findEmptySlot(inventory, G::weapon_mini_minigun, miniGunMini);
+	if (!p_pos.has_value()) {
+		G::gEntitySetToBeDestroyed.insert(miniGunMini);
+		return;
+	}
+
+	G::gCoordinator.AddComponent<Transforms>(miniGunMini, Transforms{
+		.position = p_pos.value(),
+		.rotation = {0.0f, 0.0f},
+		.scale = {1.0f, 1.0f}
+		});
+	auto& wp = G::gCoordinator.GetComponent<WeaponMini>(miniGunMini);
+	wp.posToStay = p_pos.value();
+}
+
+inline void WEAPON_DEFINITIONS::MINIGUN::createWeaponNormal(Inventory& inv, WeaponMini& weaponMini) {
+	auto const& miniGunNormal = G::gCoordinator.CreateEntity();
+	//sprite
+	//transforms
+	//weaponNormal
+	//damage
+	G::gCoordinator.AddComponent<WeaponType>(miniGunNormal, WeaponType{
+		.id = ID_WEAPON_TYPE::NORMAL
+		});
+	G::gCoordinator.AddComponent<Sprite>(miniGunNormal, Sprite{
+		.sprite = G::weapon_normal_minigun,
+		.angle = 0.0f,
+		.tint {255, 255, 255, 255},
+		.origin = raylib::Vector2(G::weapon_normal_minigun.GetSize()) * 0.5f,
+		.isDependent = false
+		});
+	G::gCoordinator.AddComponent<Transforms>(miniGunNormal, Transforms{
+		.position = G::gPlayerPos,
+		.rotation {0.0f, 0.0f},
+		.scale {1.0f, 1.0f}
+		});
+	G::gCoordinator.AddComponent<Damage>(miniGunNormal, Damage{
+		.damage = 25.f,
+		.damageOnContact = 25.f,
+		.damageType = Damage::DAMAGE_TYPE::PHYSICAL
+		});
+	G::gCoordinator.AddComponent<WeaponNormal>(miniGunNormal, WeaponNormal{
+		.bulletSprite = G::playerBulletTexture2,
+		.id = ID_WEAPON::ID_MINIGUN
+		});
+	G::gCoordinator.AddComponent<EntitySpecific>(miniGunNormal, EntitySpecific{
+		.id = ID_ENTITY::WEAPON_ID
+		});
+	G::gCoordinator.AddComponent<TimerComponent>(miniGunNormal, TimerComponent{});
+
+	weaponMini.ptrWeaponNormal = std::make_shared<ECS::Entity>(miniGunNormal);
+}
+
+inline void WEAPON_DEFINITIONS::MINIGUN::behaviourWeaponNormal(ECS::Entity weaponNormalEntity) {
+	auto const& transforms_weapon = G::gCoordinator.GetComponent<Transforms>(weaponNormalEntity);
+	auto& sprite_weapon = G::gCoordinator.GetComponent<Sprite>(weaponNormalEntity);
+	auto& timer_weapon = G::gCoordinator.GetComponent<TimerComponent>(weaponNormalEntity);
+	auto& normal_weapon = G::gCoordinator.GetComponent<WeaponNormal>(weaponNormalEntity);
+
+	timer_weapon.timerCont.insertTimer(1, Timer(200, TIMER_ID::WAITTIMER_ID));
+
+	auto targetedEntity = spatial_hash::gGird.queryNearestEntityById(transforms_weapon.position, 800.0f, ID_ENTITY::ENEMY_ID);
+
+	if (targetedEntity.has_value()) {
+		auto& rigidBody_targetedEntity = G::gCoordinator.GetComponent<RigidBody>(targetedEntity.value());
+		auto const& entityCenter = rigidBody_targetedEntity.hitbox.getHitBoxCenter();
+
+		WEAPON_DEFINITIONS::WEAPON_COMMONS::entityAngleToPos(transforms_weapon.position, sprite_weapon.angle, entityCenter);
+
+		if (timer_weapon.timerCont.checkTimer(1)) {
+			timer_weapon.timerCont.resetTimer(1);
+			//TODO -- creation of bullets should be in seperate function
+
+			ENTITY_CREATION_FUNCTIONS::createBullet(weaponNormalEntity,
+				Transforms{
+				.position = transforms_weapon.position,
+				.rotation = raylib::Vector2(0.0f, 0.0f),
+				.scale = raylib::Vector2(1.0f, 1.0f),
+				},
+				RigidBody{
+				.velocity = raylib::Vector2(0.0f, 0.0f),
+				.acceleration = raylib::Vector2(0.0f, 0.0f),
+				.hitbox = {{0.0f, 0.0f, 18.0f, 18.0f}, raylib::Color::Green()},
+				.isColliding = false,
+				.onWhatSideIsColliding = {false ,false ,false ,false }
+				},
+				Sprite{
+				.sprite = normal_weapon.bulletSprite,
+				.angle = sprite_weapon.angle,
+				.tint = {255, 255, 255, 255},
+				.origin = raylib::Vector2(normal_weapon.bulletSprite.width * 0.5f, normal_weapon.bulletSprite.height * 0.5f)
+				},
+				Health{
+			   .maxHealth = 5.0f,
+			   .health = 5.0f,
+			   .isDamaged = false,
+			   .frameImmunityTime = 1,
+			   .healthToSubstract = 0.0f,
+			   .toBeDamaged = false
+				},
+				Bullet{
+				},
+				EntitySpecific{
+				.id = ID_ENTITY::PLAYER_BULLET_ID
+				},
+				TimerComponent{
+				},
+				Damage{
+					.damage = 1.f,
+					.damageOnContact = 1.f
+				},
+				MovmentAI{
+					.DistanceH = false,
+					.DistanceW = false
+				}
+			);
+		}
+	}
+	else {
+		sprite_weapon.angle = 0.0f;
+	}
+}
