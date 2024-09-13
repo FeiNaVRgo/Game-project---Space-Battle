@@ -114,15 +114,15 @@ void Inventory::SetSlotsPos() {
 void Inventory::InteractWithSlot(SlotDef& slot) {
 	if (slot.ptrItem != nullptr) {
 		auto& miniWeapon = G::gCoordinator.GetComponent<WeaponMini>(*slot.ptrItem);
-		auto const& sprite = G::gCoordinator.GetComponent<Sprite>(*slot.ptrItem);
-		auto const& transform = G::gCoordinator.GetComponent<Transforms>(*slot.ptrItem);
+		//auto const& sprite = G::gCoordinator.GetComponent<Sprite>(*slot.ptrItem);
+		//auto const& transform = G::gCoordinator.GetComponent<Transforms>(*slot.ptrItem);
 
 		if (IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_LEFT) && miniWeapon.isSelected) {
 			miniWeapon.isSelected = false;
 			miniWeapon.afterSelecting = true;
 		}
 
-		if (raylib::Rectangle(slot.position, slot.dimensions).CheckCollision(GetMousePosition()) && IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_LEFT)) {
+		if (raylib::Rectangle(slot.position, slot.dimensions).CheckCollision(GetMousePosition()) && IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_LEFT) && !miniWeapon.afterSelecting) {
 			miniWeapon.isSelected = true;
 		}
 	}
@@ -146,7 +146,7 @@ void Inventory::moveUptrItem(std::vector<SlotDef>& vecSlot, ECS::Entity entity) 
 	Inventory::SlotDef* t_slot = new Inventory::SlotDef;
 
 	for (auto& slot : allSlots) {
-		if (slot.ptrItem != nullptr && *(slot.ptrItem) == entity) {
+		if (slot.ptrItem != nullptr && *slot.ptrItem == entity) {
 			t_slot = &slot;
 
 			//takes care of deleting normal weapon from slot_weappon - creawting is takken care in vibecheck function
@@ -154,7 +154,7 @@ void Inventory::moveUptrItem(std::vector<SlotDef>& vecSlot, ECS::Entity entity) 
 			if (slot.slotPurpuse == Inventory::SLOT_PURPOSE::SLOT_WEAPON) {
 				auto& weaponMini = G::gCoordinator.GetComponent<WeaponMini>(*slot.ptrItem);
 				if (weaponMini.isNormalInWorld) {
-					auto& weaponNormal = G::gCoordinator.GetComponent<WeaponNormal>(*weaponMini.ptrWeaponNormal);
+					//auto& weaponNormal = G::gCoordinator.GetComponent<WeaponNormal>(*weaponMini.ptrWeaponNormal);
 					G::gEntitySetToBeDestroyed.insert(*weaponMini.ptrWeaponNormal);
 					weaponMini.ptrWeaponNormal = nullptr;
 					weaponMini.isNormalInWorld = false;

@@ -21,7 +21,7 @@ inline void WEAPON_DEFINITIONS::WEAPON_COMMONS::entityAngleToPos(raylib::Vector2
 	float angle_temp = atan2f(v.x, -v.y);
 
 	angle = angle_temp;
-}\
+}
 
 inline std::optional<raylib::Vector2> WEAPON_DEFINITIONS::WEAPON_COMMONS::findEmptySlot(Inventory& inv, raylib::Texture2DUnmanaged const& sprite, ECS::Entity WeaponMini) {
 	for (auto& slot : inv.allSlots) {
@@ -267,7 +267,7 @@ inline void WEAPON_DEFINITIONS::MINIGUN::behaviourWeaponNormal(ECS::Entity weapo
 	auto& timer_weapon = G::gCoordinator.GetComponent<TimerComponent>(weaponNormalEntity);
 	auto& normal_weapon = G::gCoordinator.GetComponent<WeaponNormal>(weaponNormalEntity);
 
-	timer_weapon.timerCont.insertTimer(1, Timer(200, TIMER_ID::WAITTIMER_ID));
+	timer_weapon.timerCont.insertTimer(1, Timer(30, TIMER_ID::WAITTIMER_ID));
 
 	auto targetedEntity = spatial_hash::gGird.queryNearestEntityById(transforms_weapon.position, 800.0f, ID_ENTITY::ENEMY_ID);
 

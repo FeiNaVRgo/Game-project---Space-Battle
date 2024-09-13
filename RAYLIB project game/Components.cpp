@@ -156,8 +156,8 @@ void WeaponSystem::weaponInvVibeCheck(Inventory const& inv, WeaponLibrary const&
 					weaponLibrary.weaponBehaviourMap.at(weaponMini.id)(*weaponMini.ptrWeaponNormal);
 				}
 
-				if (weaponLibrary.weaponMap.contains(weaponMini.id) && weaponMini.isNormalInWorld == false) {
-					weaponLibrary.weaponMap.at(weaponMini.id)(G::gCoordinator.GetComponent<Inventory>(G::player), weaponMini);
+				if (weaponLibrary.weaponCreationMap.contains(weaponMini.id) && weaponMini.isNormalInWorld == false) {
+					weaponLibrary.weaponCreationMap.at(weaponMini.id)(G::gCoordinator.GetComponent<Inventory>(G::player), weaponMini);
 					weaponMini.isNormalInWorld = true;
 				}
 			}
@@ -167,9 +167,9 @@ void WeaponSystem::weaponInvVibeCheck(Inventory const& inv, WeaponLibrary const&
 }
 
 WeaponLibrary::WeaponLibrary() {
-	weaponMap.try_emplace(ID_WEAPON::ID_CANON, WEAPON_DEFINITIONS::CANON::createWeaponNormal);
+	weaponCreationMap.try_emplace(ID_WEAPON::ID_CANON, WEAPON_DEFINITIONS::CANON::createWeaponNormal);
 	weaponBehaviourMap.try_emplace(ID_WEAPON::ID_CANON, WEAPON_DEFINITIONS::CANON::behaviourWeaponNormal);
-	weaponMap.try_emplace(ID_WEAPON::ID_MINIGUN, WEAPON_DEFINITIONS::MINIGUN::createWeaponNormal);
+	weaponCreationMap.try_emplace(ID_WEAPON::ID_MINIGUN, WEAPON_DEFINITIONS::MINIGUN::createWeaponNormal);
 	weaponBehaviourMap.try_emplace(ID_WEAPON::ID_MINIGUN, WEAPON_DEFINITIONS::MINIGUN::behaviourWeaponNormal);
 }
  

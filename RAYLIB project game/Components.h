@@ -92,7 +92,7 @@ struct WeaponLibrary {
 	using CreateNormalFunc = std::function<void(Inventory&, WeaponMini&)>;
 	using WeaponBehaviour = std::function<void(ECS::Entity)>;
 	
-	std::unordered_map<ID_WEAPON, CreateNormalFunc> weaponMap;
+	std::unordered_map<ID_WEAPON, CreateNormalFunc> weaponCreationMap;
 	std::unordered_map<ID_WEAPON, WeaponBehaviour> weaponBehaviourMap;
 
 	WeaponLibrary();
