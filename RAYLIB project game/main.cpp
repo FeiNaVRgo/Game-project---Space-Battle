@@ -18,6 +18,7 @@
 #endif
 
 int main() {
+   //TODO -- will need to make inventory better - shit is broken - sometimes weapon normal is not destructed and sometimes weapon mini sprite is stucked in slot(it is still considered 'free' slot)
    //TODO -- split up component systems into separate files
    //TODO -- application class for all global variables
    //TODO -- namespace for components
