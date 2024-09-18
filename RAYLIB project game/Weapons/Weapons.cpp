@@ -267,7 +267,7 @@ inline void WEAPON_DEFINITIONS::MINIGUN::behaviourWeaponNormal(ECS::Entity weapo
 	auto& timer_weapon = G::gCoordinator.GetComponent<TimerComponent>(weaponNormalEntity);
 	auto& normal_weapon = G::gCoordinator.GetComponent<WeaponNormal>(weaponNormalEntity);
 
-	timer_weapon.timerCont.insertTimer(1, Timer(30, TIMER_ID::WAITTIMER_ID));
+	timer_weapon.timerCont.insertTimer(1, Timer(200, TIMER_ID::WAITTIMER_ID));
 
 	auto targetedEntity = spatial_hash::gGird.queryNearestEntityById(transforms_weapon.position, 800.0f, ID_ENTITY::ENEMY_ID);
 

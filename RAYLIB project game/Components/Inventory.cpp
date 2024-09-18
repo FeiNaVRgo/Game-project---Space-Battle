@@ -128,7 +128,22 @@ void Inventory::InteractWithSlot(SlotDef& slot) {
 	}
 }
 
+void deleteWeaponNormalInSlot(Inventory::SlotDef& slot) {
+	if (slot.slotPurpuse == Inventory::SLOT_PURPOSE::SLOT_WEAPON && slot.ptrItem != nullptr) {
+		auto& weaponMini = G::gCoordinator.GetComponent<WeaponMini>(*slot.ptrItem);
+		if (weaponMini.isNormalInWorld) {
+			
+			G::gEntitySetToBeDestroyed.insert(*weaponMini.ptrWeaponNormal);
+			weaponMini.ptrWeaponNormal = nullptr;
+			weaponMini.isNormalInWorld = false;
+		}
+	}
+}
+
 void Inventory::swapItemSlots(SlotDef& slot1, SlotDef& slot2) {
+	deleteWeaponNormalInSlot(slot1);
+	deleteWeaponNormalInSlot(slot2);
+
 	auto temp_slot = slot2;
 	slot2.ptrItem = slot1.ptrItem;
 	slot1.ptrItem = temp_slot.ptrItem;
@@ -148,18 +163,6 @@ void Inventory::moveUptrItem(std::vector<SlotDef>& vecSlot, ECS::Entity entity) 
 	for (auto& slot : allSlots) {
 		if (slot.ptrItem != nullptr && *slot.ptrItem == entity) {
 			t_slot = &slot;
-
-			//takes care of deleting normal weapon from slot_weappon - creawting is takken care in vibecheck function
-			//yippe
-			if (slot.slotPurpuse == Inventory::SLOT_PURPOSE::SLOT_WEAPON) {
-				auto& weaponMini = G::gCoordinator.GetComponent<WeaponMini>(*slot.ptrItem);
-				if (weaponMini.isNormalInWorld) {
-					//auto& weaponNormal = G::gCoordinator.GetComponent<WeaponNormal>(*weaponMini.ptrWeaponNormal);
-					G::gEntitySetToBeDestroyed.insert(*weaponMini.ptrWeaponNormal);
-					weaponMini.ptrWeaponNormal = nullptr;
-					weaponMini.isNormalInWorld = false;
-				}
-			}
 		}
 	}
 

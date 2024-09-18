@@ -389,14 +389,16 @@ void EnemySpawningSystem::update() {
 				G::gLevel++;
 				G::gEnemyCounter = G::gLevel;
 
+				const int BOUNDS = 400;
+				
 				raylib::Vector2 vP = G::gPlayerPos;
-				std::uniform_int_distribution distribX(static_cast<int>(vP.x) - 100, static_cast<int>(vP.x) + 100);
-				std::uniform_int_distribution distribY(static_cast<int>(vP.y) - 100, static_cast<int>(vP.y) + 100);
+				std::uniform_int_distribution distribX(static_cast<int>(vP.x) - BOUNDS, static_cast<int>(vP.x) + BOUNDS);
+				std::uniform_int_distribution distribY(static_cast<int>(vP.y) - BOUNDS, static_cast<int>(vP.y) + BOUNDS);
 
 				for (int i = 0; i < G::gEnemyCounter; i++) {
 					Vector2 v = { distribX(gen), distribY(gen) };
 
-					while (Vector2Distance(vP, v) < 70 || !G::gridRect.CheckCollision(v)) {
+					while (Vector2Distance(vP, v) < 300 || !G::gridRect.CheckCollision(v)) {
 						v = { (float)distribX(gen), (float)distribY(gen) };
 					}
 
@@ -467,7 +469,7 @@ void BulletManipulationSystem::update() {
 		auto& bullet = G::gCoordinator.GetComponent<Bullet>(entity);
 
 		movmentAI.moveInLineOfFunc(200.0f, entity, std::vector<float>{DEG2RAD * sprite.angle}, MovmentAI::straightLineFunc);
-		//movmentAI.moveInLineOfFunc(200.0f, entity, std::vector<float>{500.f, 500.f}, MovmentAI::sinwaveExactFunc);
+		//movmentAI.moveInLineOfFunc(200.0f, entity, std::vector<float>{100.f, 50.f}, MovmentAI::sinwaveExactFunc);
 
 		if (!raylib::containsRect(G::gridRect, rigidBody.hitbox.hitboxRect)) {
 			health.health = 0.0f;
