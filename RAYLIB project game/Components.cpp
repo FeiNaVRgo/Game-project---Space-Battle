@@ -167,18 +167,28 @@ void WeaponSystem::weaponInvVibeCheck(Inventory const& inv, WeaponLibrary const&
 }
 
 template<typename T>
-void WeaponLibrary::insertToMap(ID_WEAPON id) {
-	weaponMiniCreationMap.try_emplace(id, T::createMini);
-	weaponNormalCreationMap.try_emplace(id, T::createNormal);
-	weaponBehaviourMap.try_emplace(id, T::behaviourNormal);
+void WeaponLibrary::insertToMap() {
+	auto id_name = std::string(typeid(T).name());
+
+	id_name.erase(0, 13);//erase "struct weapon" at beginning  
+	id_name.insert(0, "ID");//ad "ID" at beginning
+
+	//std::cout << id_name << "\n";
+	//magic_enum::
+
+	auto id_weapon = magic_enum::enum_cast<ID_WEAPON>(id_name);
+
+	weaponMiniCreationMap.try_emplace(id_weapon.value(), T::createMini);
+	weaponNormalCreationMap.try_emplace(id_weapon.value(), T::createNormal);
+	weaponBehaviourMap.try_emplace(id_weapon.value(), T::behaviourNormal);
 }
 
 WeaponLibrary::WeaponLibrary() {
 	using enum ID_WEAPON;
 
-	insertToMap<Weapon_CANON>(ID_CANON);
-	insertToMap<Weapon_MINIGUN>(ID_MINIGUN);
-	insertToMap<Weapon_LASERPISTOL>(ID_LASERPISTOL);
+	insertToMap<Weapon_CANON>();
+	insertToMap<Weapon_MINIGUN>();
+	insertToMap<Weapon_LASERPISTOL>();
 }
  
 inline void InputSystem::breaksVelocity(RigidBody& rigidBody) {

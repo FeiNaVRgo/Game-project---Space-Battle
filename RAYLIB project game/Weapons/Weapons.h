@@ -61,7 +61,7 @@ struct WeaponType {
 struct Inventory;
 
 
-//TODO -- make it usable repalce namespace weapon definitions
+//weapons derived from this must be named "Weapon_NAME" where NAME exactly matches name from ID_WEAPON::ID_NAME
 template<typename T>
 struct IWeapon {
 	struct defaults {

@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <functional>
 #include <unordered_set>
+#include <magic_enum_all.hpp>
 #include "ECS.h"
 
 struct Transforms;
@@ -94,7 +95,7 @@ struct WeaponLibrary {
 	using WeaponBehaviour =  std::function<void(ECS::Entity)>;
 	
 	template<typename T>
-	void insertToMap(ID_WEAPON id);
+	void insertToMap();
 
 	std::unordered_map<ID_WEAPON, CreateMiniFunc> weaponMiniCreationMap;
 	std::unordered_map<ID_WEAPON, CreateNormalFunc> weaponNormalCreationMap;
