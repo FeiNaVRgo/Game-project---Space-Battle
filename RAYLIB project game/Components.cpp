@@ -184,8 +184,6 @@ void WeaponLibrary::insertToMap() {
 }
 
 WeaponLibrary::WeaponLibrary() {
-	using enum ID_WEAPON;
-
 	insertToMap<Weapon_CANON>();
 	insertToMap<Weapon_MINIGUN>();
 	insertToMap<Weapon_LASERPISTOL>();
