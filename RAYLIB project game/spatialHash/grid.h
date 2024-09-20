@@ -44,9 +44,9 @@ namespace spatial_hash {
 			const float tileLengthInv
 		) {
 			return IndexT(
-				std::floor(point.x() * tileLengthInv),
-				std::floor(point.y() * tileLengthInv),
-				std::floor(point.z() * tileLengthInv));
+				(const int)std::floor(point.x() * tileLengthInv),
+				(const int)std::floor(point.y() * tileLengthInv),
+				(const int)std::floor(point.z() * tileLengthInv));
 		}
 
 		template<typename IndexT>
@@ -105,7 +105,7 @@ namespace spatial_hash {
 	
 		void remove(Entity entity, vec entityPos) {
 			
-			auto pos = indexFromPoint<BlockIndex>(Point(static_cast<int>(entityPos.x), static_cast<int>(entityPos.y), 0), tileSizeInv);
+			auto pos = indexFromPoint<BlockIndex>(Point(static_cast<const float>(entityPos.x), static_cast<const float>(entityPos.y), 0), tileSizeInv);
 
 			if (!checkInBounds(pos.x(), pos.y(), 0) || !tileMap.at(LongIndex(pos.x(), pos.y(), 0)).entitySet.contains(entity)) {
 				return;

@@ -61,9 +61,12 @@ namespace G {
 	inline raylib::Texture2DUnmanaged enemyTexture("resources/EnemyModel.png");
 	inline raylib::Texture2DUnmanaged playerBulletTexture1("resources/PlayerBulletModel1.png");
 	inline raylib::Texture2DUnmanaged playerBulletTexture2("resources/PlayerBulletModel2.png");
+	inline raylib::Texture2DUnmanaged playerBulletTexture3("resources/PlayerBulletModel3.png");
 	inline raylib::Texture2DUnmanaged weapon_mini_canon("resources/weapons/mini/canon_mini.png");
 	inline raylib::Texture2DUnmanaged weapon_normal_canon("resources/weapons/normal/canon_normal.png");
 	inline raylib::Texture2DUnmanaged weapon_mini_minigun("resources/weapons/mini/minigun_mini.png");
 	inline raylib::Texture2DUnmanaged weapon_normal_minigun("resources/weapons/normal/minigun_normal.png");
+	inline raylib::Texture2DUnmanaged weapon_mini_lasergun("resources/weapons/mini/lasergun_mini.png");
+	inline raylib::Texture2DUnmanaged weapon_normal_lasergun("resources/weapons/normal/lasergun_normal.png");
 	#pragma endregion texture unmanaged unload them yourself
 }

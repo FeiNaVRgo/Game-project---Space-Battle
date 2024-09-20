@@ -156,8 +156,8 @@ void WeaponSystem::weaponInvVibeCheck(Inventory const& inv, WeaponLibrary const&
 					weaponLibrary.weaponBehaviourMap.at(weaponMini.id)(*weaponMini.ptrWeaponNormal);
 				}
 
-				if (weaponLibrary.weaponCreationMap.contains(weaponMini.id) && weaponMini.isNormalInWorld == false) {
-					weaponLibrary.weaponCreationMap.at(weaponMini.id)(G::gCoordinator.GetComponent<Inventory>(G::player), weaponMini);
+				if (weaponLibrary.weaponNormalCreationMap.contains(weaponMini.id) && weaponMini.isNormalInWorld == false) {
+					weaponLibrary.weaponNormalCreationMap.at(weaponMini.id)(G::gCoordinator.GetComponent<Inventory>(G::player), weaponMini);
 					weaponMini.isNormalInWorld = true;
 				}
 			}
@@ -166,13 +166,45 @@ void WeaponSystem::weaponInvVibeCheck(Inventory const& inv, WeaponLibrary const&
 	}
 }
 
+template<typename T>
+void WeaponLibrary::insertToMap(ID_WEAPON id) {
+	weaponMiniCreationMap.try_emplace(id, T::createMini);
+	weaponNormalCreationMap.try_emplace(id, T::createNormal);
+	weaponBehaviourMap.try_emplace(id, T::behaviourNormal);
+}
+
 WeaponLibrary::WeaponLibrary() {
-	weaponCreationMap.try_emplace(ID_WEAPON::ID_CANON, WEAPON_DEFINITIONS::CANON::createWeaponNormal);
-	weaponBehaviourMap.try_emplace(ID_WEAPON::ID_CANON, WEAPON_DEFINITIONS::CANON::behaviourWeaponNormal);
-	weaponCreationMap.try_emplace(ID_WEAPON::ID_MINIGUN, WEAPON_DEFINITIONS::MINIGUN::createWeaponNormal);
-	weaponBehaviourMap.try_emplace(ID_WEAPON::ID_MINIGUN, WEAPON_DEFINITIONS::MINIGUN::behaviourWeaponNormal);
+	using enum ID_WEAPON;
+
+	insertToMap<Weapon_CANON>(ID_CANON);
+	insertToMap<Weapon_MINIGUN>(ID_MINIGUN);
+	insertToMap<Weapon_LASERPISTOL>(ID_LASERPISTOL);
 }
  
+inline void InputSystem::breaksVelocity(RigidBody& rigidBody) {
+	if (IsKeyDown(KeyInputs::BREAKS)) {
+		if (rigidBody.velocity.x >= 5.f) {
+			rigidBody.velocity.x--;
+		}
+		else if (rigidBody.velocity.x <= -5.f) {
+			rigidBody.velocity.x++;
+		}
+		else if (rigidBody.velocity.x <= 5.f && rigidBody.velocity.x >= -5.f) {
+			rigidBody.velocity.x = 0.f;
+		}
+
+		if (rigidBody.velocity.y >= 5.f) {
+			rigidBody.velocity.y--;
+		}
+		else if (rigidBody.velocity.y <= -5.f) {
+			rigidBody.velocity.y++;
+		}
+		else if (rigidBody.velocity.y <= 5.f && rigidBody.velocity.y >= -5.f) {
+			rigidBody.velocity.y = 0.f;
+		}
+	}
+}
+
 void InputSystem::update() {
 	for (auto const& entity : mEntities) {
 		auto& transform = G::gCoordinator.GetComponent<Transforms>(entity);
@@ -201,10 +233,13 @@ void InputSystem::update() {
 		G::gPlayerPos = transform.position;
 
 		if (IsKeyPressed(KeyboardKey::KEY_C)) {
-			WEAPON_DEFINITIONS::CANON::createWeaponMini();
+			Weapon_CANON::createMini();
 		}
 		if (IsKeyPressed(KeyboardKey::KEY_V)) {
-			WEAPON_DEFINITIONS::MINIGUN::createWeaponMini();
+			Weapon_MINIGUN::createMini();
+		}
+		if (IsKeyPressed(KeyboardKey::KEY_B)) {
+			Weapon_LASERPISTOL::createMini();
 		}
 
 		if (IsKeyPressed(KeyInputs::DASH) && pSpecific.dash <= 1.0f) {
@@ -215,27 +250,7 @@ void InputSystem::update() {
 			pSpecific.dash -= GetFrameTime() * 6.0f;
 		}
 
-		if (IsKeyDown(KeyInputs::BREAKS)) {
-			if (rigidBody.velocity.x >= 5.f) {
-				rigidBody.velocity.x--;
-			}
-			else if (rigidBody.velocity.x <= -5.f) {
-				rigidBody.velocity.x++;
-			}
-			else if (rigidBody.velocity.x <= 5.f && rigidBody.velocity.x >= -5.f) {
-				rigidBody.velocity.x = 0.f;
-			}
-
-			if (rigidBody.velocity.y >= 5.f) {
-				rigidBody.velocity.y--;
-			}
-			else if (rigidBody.velocity.y <= -5.f) {
-				rigidBody.velocity.y++;
-			}
-			else if (rigidBody.velocity.y <= 5.f && rigidBody.velocity.y >= -5.f) {
-				rigidBody.velocity.y = 0.f;
-			}
-		}
+		breaksVelocity(rigidBody);
 
 
 		if (raylib::IsKeyOrMouseDown(KeyInputs::FLY)) {
@@ -395,8 +410,8 @@ void EnemySpawningSystem::update() {
 				std::uniform_int_distribution distribX(static_cast<int>(vP.x) - BOUNDS, static_cast<int>(vP.x) + BOUNDS);
 				std::uniform_int_distribution distribY(static_cast<int>(vP.y) - BOUNDS, static_cast<int>(vP.y) + BOUNDS);
 
-				for (int i = 0; i < G::gEnemyCounter; i++) {
-					Vector2 v = { distribX(gen), distribY(gen) };
+				for (uint32_t i = 0; i < G::gEnemyCounter; i++) {
+					Vector2 v = { (float)distribX(gen), (float)distribY(gen) };
 
 					while (Vector2Distance(vP, v) < 300 || !G::gridRect.CheckCollision(v)) {
 						v = { (float)distribX(gen), (float)distribY(gen) };
@@ -425,7 +440,7 @@ void EnemySpawningSystem::update() {
 						.maxHealth = 30.0f,
 						.health = 30.0f,
 						.isDamaged = false,
-						.frameImmunityTime = 10,
+						.frameImmunityTime = 2,
 						.healthToSubstract = 0.0f,
 						.toBeDamaged = false
 						});
@@ -468,8 +483,8 @@ void BulletManipulationSystem::update() {
 		auto& justBorn = G::gCoordinator.GetComponent<JustBorn>(entity);
 		auto& bullet = G::gCoordinator.GetComponent<Bullet>(entity);
 
-		movmentAI.moveInLineOfFunc(200.0f, entity, std::vector<float>{DEG2RAD * sprite.angle}, MovmentAI::straightLineFunc);
-		//movmentAI.moveInLineOfFunc(200.0f, entity, std::vector<float>{100.f, 50.f}, MovmentAI::sinwaveExactFunc);
+		movmentAI.moveInLineOfFunc(500.0f, entity, std::vector<float>{DEG2RAD * sprite.angle}, MovmentAI::straightLineFunc);
+		//movmentAI.moveInLineOfFunc(200.0f, entity, std::vector<float>{300.f, 100.f}, MovmentAI::sinwaveExactFunc);
 
 		if (!raylib::containsRect(G::gridRect, rigidBody.hitbox.hitboxRect)) {
 			health.health = 0.0f;

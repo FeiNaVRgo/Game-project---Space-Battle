@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <functional>
 #include <unordered_set>
+#include <magic_enum_all.hpp>
+#include <boost/type_traits.hpp>
 #include "ECS.h"
 
 struct Transforms;
@@ -89,16 +91,23 @@ struct WeaponSystem : ECS::System {
 };
 
 struct WeaponLibrary {
+	using CreateMiniFunc =   std::function<void()>;
 	using CreateNormalFunc = std::function<void(Inventory&, WeaponMini&)>;
-	using WeaponBehaviour = std::function<void(ECS::Entity)>;
+	using WeaponBehaviour =  std::function<void(ECS::Entity)>;
 	
-	std::unordered_map<ID_WEAPON, CreateNormalFunc> weaponCreationMap;
+	template<typename T>
+	void insertToMap(ID_WEAPON id);
+
+	std::unordered_map<ID_WEAPON, CreateMiniFunc> weaponMiniCreationMap;
+	std::unordered_map<ID_WEAPON, CreateNormalFunc> weaponNormalCreationMap;
 	std::unordered_map<ID_WEAPON, WeaponBehaviour> weaponBehaviourMap;
 
 	WeaponLibrary();
 };
 
 struct InputSystem : public ECS::System {
+private:
+	void breaksVelocity(RigidBody& rigidBody);
 public:
 	void update();
 };

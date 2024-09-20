@@ -4,6 +4,7 @@
 #include <memory>
 #include <optional>
 #include "../ECS.h"
+#include "utils-virtual-static-method.h"
 
 struct Inventory;
 
@@ -13,8 +14,9 @@ enum class ID_WEAPON_TYPE {
 };
 
 enum class ID_WEAPON {
-	ID_CANON   = 0,
-	ID_MINIGUN = 1,
+	ID_CANON       = 0,
+	ID_MINIGUN     = 1,
+	ID_LASERPISTOL = 2
 };
 
 enum class ID_WEAPON_RARITY {
@@ -58,21 +60,49 @@ struct WeaponType {
 
 struct Inventory;
 
-namespace WEAPON_DEFINITIONS {
-	namespace WEAPON_COMMONS {
-		extern void entityAngleToPos(raylib::Vector2 const& entityPos, float& angle, raylib::Vector2 const& pos);
-		extern std::optional<raylib::Vector2> findEmptySlot(Inventory& inv, raylib::Texture2DUnmanaged const& sprite, ECS::Entity WeaponMini);
-	}
 
-	namespace CANON {
-		extern void createWeaponMini();
-		extern void createWeaponNormal(Inventory& inv, WeaponMini& weaponMini);
-		extern void behaviourWeaponNormal(ECS::Entity weaponNormalEntity);
-	}
+//TODO -- make it usable repalce namespace weapon definitions
+template<typename T>
+struct IWeapon {
+	struct defaults {
+		static void d_createMini() { assert(1 > 2 && "static virtual from IWeapon called"); }
+		static void d_createNormal(Inventory& inv, WeaponMini& weaponMini) { assert(1 > 2 && "static virtual from IWeapon called"); }
+		static void d_behaviourWeaponNormal(ECS::Entity weaponNormalEntity) { assert(1 > 2 && "static virtual from IWeapon called"); }
+	};
 
-	namespace MINIGUN {
-		extern void createWeaponMini();
-		extern void createWeaponNormal(Inventory& inv, WeaponMini& weaponMini);
-		extern void behaviourWeaponNormal(ECS::Entity weaponNormalEntity);
+	virtual_static_method(d_createMini, void(void), T, defaults);
+	virtual_static_method(d_createNormal, void(Inventory&, WeaponMini&), T, defaults);
+	virtual_static_method(d_behaviourWeaponNormal, void(ECS::Entity), T, defaults);
+
+	static void createMini() {
+		d_createMini();
 	}
-}
+	static void createNormal(Inventory& inv, WeaponMini& weaponMini) {
+		d_createNormal(inv, weaponMini);
+	}
+	static void behaviourNormal(ECS::Entity weaponNormalEntity) {
+		d_behaviourWeaponNormal(weaponNormalEntity);
+	}
+	//lol
+	static void entityAngleToPos(raylib::Vector2 const& entityPos, float& angle, raylib::Vector2 const& pos);
+
+	static std::optional<raylib::Vector2> findEmptySlot(Inventory& inv, raylib::Texture2DUnmanaged const& sprite, ECS::Entity WeaponMini);
+};
+
+struct Weapon_CANON : IWeapon<Weapon_CANON> {
+	static void d_createMini();
+	static void d_createNormal(Inventory& inv, WeaponMini& weaponMini);
+	static void d_behaviourWeaponNormal(ECS::Entity weaponNormalEntity);
+};
+
+struct Weapon_MINIGUN : IWeapon<Weapon_MINIGUN> {
+	static void d_createMini();
+	static void d_createNormal(Inventory& inv, WeaponMini& weaponMini);
+	static void d_behaviourWeaponNormal(ECS::Entity weaponNormalEntity);
+};
+
+struct Weapon_LASERPISTOL : IWeapon<Weapon_LASERPISTOL> {
+	static void d_createMini();
+	static void d_createNormal(Inventory& inv, WeaponMini& weaponMini);
+	static void d_behaviourWeaponNormal(ECS::Entity weaponNormalEntity);
+};
