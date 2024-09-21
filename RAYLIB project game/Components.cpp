@@ -171,12 +171,11 @@ void WeaponLibrary::insertToMap() {
 	auto id_name = std::string(typeid(T).name());
 
 	id_name.erase(0, 13);//erase "struct weapon" at beginning  
-	id_name.insert(0, "ID");//ad "ID" at beginning
-
-	//std::cout << id_name << "\n";
-	//magic_enum::
+	id_name.insert(0, "ID");//add "ID" at beginning
 
 	auto id_weapon = magic_enum::enum_cast<ID_WEAPON>(id_name);
+
+	assert(id_weapon.has_value() && "you fucked up naming man");
 
 	weaponMiniCreationMap.try_emplace(id_weapon.value(), T::createMini);
 	weaponNormalCreationMap.try_emplace(id_weapon.value(), T::createNormal);
@@ -502,10 +501,6 @@ void BulletManipulationSystem::update() {
 
 void EntityRemovalSystem::update() {
 	for (auto const& entity : G::gEntitySetToBeDestroyed) {
-		//auto& rigidBody = G::gCoordinator.GetComponent<RigidBody>(entity);
-		//auto& sprite = G::gCoordinator.GetComponent<Sprite>(entity);
-
-		//sprite.sprite.Unload();
 		G::gCoordinator.DestroyEntity(entity);
 	}
 
