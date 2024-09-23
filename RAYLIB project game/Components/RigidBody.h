@@ -22,6 +22,6 @@ struct RigidBody {
 	raylib::Vector2 acceleration;//2
 	Hitbox hitbox;//3
 	bool isColliding;//4
-	Side<bool> onWhatSideIsColliding;//5
+	Side<bool> onWhatSideIsColliding;//5 @  
 };
 

@@ -62,7 +62,7 @@ struct WeaponMini {
 
 	raylib::Vector2 posToStay;
 	
-	WeaponInfo weaponInfo;
+	WeaponInfo weaponInfo{};
 	
 }; 
 

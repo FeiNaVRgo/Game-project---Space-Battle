@@ -11,6 +11,7 @@ public:
 public:
     FunctionalBox(const raylib::Vector2& pos, const raylib::Color& colRect, const raylib::Text& text);
     FunctionalBox(const raylib::Text& text, const raylib::Rectangle& rect, const raylib::Color& colRect);
+    FunctionalBox() = default;
 
     bool update();
     void changeTextOnInput(uint16_t& _t);
