@@ -55,6 +55,7 @@ private:
 	void DrawSlot(const SlotDef& slot);
 	void DrawSlotOutline(const SlotDef& slot);
 	void DrawVecSlot(const std::vector<SlotDef>& vecSlot, bool drawOutline, bool drawSlot = true);
+	void DrawWeaponInfo(ECS::Entity weaponMini);
 	void SetSlotsPos();
 	void InteractWithSlot(SlotDef& slot);
 	void swapItemSlots(SlotDef& slot1, SlotDef& slot2);

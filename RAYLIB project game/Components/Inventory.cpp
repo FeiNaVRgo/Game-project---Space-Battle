@@ -7,6 +7,7 @@
 #include "Transforms.h"
 #include "Sprite.h"
 #include "../Weapons/Weapons.h"
+#include "../FunctionalBox.h"
 
 Inventory::Inventory() {
 	inventoryBase = { G::screenWidth - INVENTORY_WIDTH, 0, INVENTORY_WIDTH, G::screenHeight };
@@ -60,6 +61,29 @@ void Inventory::DrawVecSlot(const std::vector<SlotDef>& vecSlot, bool drawOutlin
 			DrawSlotOutline(slot);
 		}
 	}
+}
+
+//TODO -- do info like in tiny rogues
+void Inventory::DrawWeaponInfo(ECS::Entity weaponMini) {
+	float const boxW = 100.f;
+	float const boxH = 150.f;
+
+	float const boxPosX = inventoryBase.GetPosition().x - boxW - 2.0f;
+	float const boxPosY = G::screenHeight - boxH;
+
+	auto& mini = G::gCoordinator.GetComponent<WeaponMini>(weaponMini);
+	auto rarity = std::string(magic_enum::enum_name(mini.rarity));
+
+	auto funcBox = FunctionalBox(
+		raylib::Text("Name: " + mini.name + "Desc: " + mini.description + "Rarity: " + rarity, 10.0f, BLACK, GetFontDefault(), 2.0f),
+		raylib::Rectangle(boxPosX, boxPosY, boxW, boxH),
+		raylib::Color(RED)
+	);
+	EndMode2D();
+	funcBox.DrawTextBoxed(true);
+	//funcBox.rect.DrawLines(BLACK);
+	raylib::Rectangle(funcBox.rect.GetX() - 2.f, funcBox.rect.GetY() - 2.f, funcBox.rect.GetWidth() + 2.f, funcBox.rect.GetHeight() + 2.f).DrawLines(BLACK);
+	BeginMode2D(G::camera);
 }
 
 void Inventory::SetSlotsPos() {
@@ -120,6 +144,11 @@ void Inventory::InteractWithSlot(SlotDef& slot) {
 		if (IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_LEFT) && miniWeapon.isSelected) {
 			miniWeapon.isSelected = false;
 			miniWeapon.afterSelecting = true;
+		}
+
+		if (raylib::Rectangle(slot.position, slot.dimensions).CheckCollision(GetMousePosition())) {
+			DrawWeaponInfo(*slot.ptrItem);
+			//w std::cout << *slot.ptrItem << "\n";
 		}
 
 		if (raylib::Rectangle(slot.position, slot.dimensions).CheckCollision(GetMousePosition()) && IsMouseButtonPressed(MouseButton::MOUSE_BUTTON_LEFT) && !miniWeapon.afterSelecting) {

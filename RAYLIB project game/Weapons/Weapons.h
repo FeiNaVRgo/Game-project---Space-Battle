@@ -1,8 +1,12 @@
 #pragma once
 #include <src/raylib-cpp.hpp>
+#include <magic_enum_all.hpp>
+
 #include <unordered_map>
 #include <memory>
 #include <optional>
+
+#include "../FunctionalBox.h"
 #include "../ECS.h"
 #include "utils-virtual-static-method.h"
 
@@ -30,6 +34,16 @@ enum class ID_WEAPON_RARITY {
 	TRANSCENDENT     = 7
 };
 
+struct WeaponInfo {
+	FunctionalBox box_name;
+	FunctionalBox box_stats;
+	FunctionalBox box_description;
+	FunctionalBox box_rarity;
+	
+	void updateInfoVariables(ECS::Entity weaponMini);
+	void drawInfo(ECS::Entity weaponMini);
+};
+
 struct WeaponMini {
 	bool isHeld;//1
 	bool isEquipped;//2
@@ -47,7 +61,10 @@ struct WeaponMini {
 	bool isNormalInWorld = false;
 
 	raylib::Vector2 posToStay;
-};
+	
+	WeaponInfo weaponInfo;
+	
+}; 
 
 struct WeaponNormal {
 	raylib::Texture2DUnmanaged bulletSprite;//1

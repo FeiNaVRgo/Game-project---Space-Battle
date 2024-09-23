@@ -14,6 +14,15 @@
 #include "../Components/Bullet.h"
 #include "../Components/MovmentAI.h"
 
+void WeaponInfo::updateInfoVariables(ECS::Entity weaponMini) { 
+	//auto& damage_weapon = G::gCoordinator.GetComponent<Damage>(weaponMini);
+	box_name = FunctionalBox(raylib::Text("lol"), { 0.f, 0.f, 10.f, 10.f }, BLACK);
+}
+
+void WeaponInfo::drawInfo(ECS::Entity weaponMini) {
+	updateInfoVariables(weaponMini);
+}
+
 template<typename T>
 inline void IWeapon<T>::entityAngleToPos(raylib::Vector2 const& entityPos, float& angle, raylib::Vector2 const& pos) {
 	float distance = Vector2Distance(entityPos, pos);
@@ -36,6 +45,7 @@ inline std::optional<raylib::Vector2> IWeapon<T>::findEmptySlot(Inventory& inv, 
 }
 
 void Weapon_CANON::d_createMini() {
+
 	auto const& canonMini = G::gCoordinator.CreateEntity();
 	auto& inventory = G::gCoordinator.GetComponent<Inventory>(G::player);
 

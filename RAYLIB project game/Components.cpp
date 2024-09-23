@@ -167,7 +167,7 @@ void WeaponSystem::weaponInvVibeCheck(Inventory const& inv, WeaponLibrary const&
 }
 
 template<typename T>
-void WeaponLibrary::insertToMap() {
+void WeaponLibrary::insertToLib() {
 	auto id_name = std::string(typeid(T).name());
 
 	id_name.erase(0, 13);//erase "struct weapon" at beginning  
@@ -183,9 +183,9 @@ void WeaponLibrary::insertToMap() {
 }
 
 WeaponLibrary::WeaponLibrary() {
-	insertToMap<Weapon_CANON>();
-	insertToMap<Weapon_MINIGUN>();
-	insertToMap<Weapon_LASERPISTOL>();
+	insertToLib<Weapon_CANON>();
+	insertToLib<Weapon_MINIGUN>();
+	insertToLib<Weapon_LASERPISTOL>();
 }
  
 inline void InputSystem::breaksVelocity(RigidBody& rigidBody) {

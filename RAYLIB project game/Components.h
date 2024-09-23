@@ -95,7 +95,7 @@ struct WeaponLibrary {
 	using WeaponBehaviour =  std::function<void(ECS::Entity)>;
 	
 	template<typename T>
-	void insertToMap();
+	void insertToLib();
 
 	std::unordered_map<ID_WEAPON, CreateMiniFunc> weaponMiniCreationMap;
 	std::unordered_map<ID_WEAPON, CreateNormalFunc> weaponNormalCreationMap;
