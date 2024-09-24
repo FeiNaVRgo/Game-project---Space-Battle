@@ -102,6 +102,9 @@
     <ClCompile Include="Components\ComponentsCommons.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Augments\Augments.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="resources\PlayerModel.png">
@@ -224,6 +227,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Weapons\utils-virtual-static-method.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Augments\Augments.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

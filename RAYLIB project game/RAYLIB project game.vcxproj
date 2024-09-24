@@ -173,6 +173,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Augments\Augments.cpp" />
     <ClCompile Include="Components.cpp" />
     <ClCompile Include="Components\ComponentsCommons.cpp" />
     <ClCompile Include="Components\Bullet.cpp" />
@@ -211,6 +212,7 @@
     <Image Include="resources\PlayerModel.png" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Augments\Augments.h" />
     <ClInclude Include="Components.h" />
     <ClInclude Include="Components\all.h" />
     <ClInclude Include="Components\ComponentsCommons.h" />
