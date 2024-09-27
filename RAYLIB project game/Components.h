@@ -20,11 +20,13 @@ struct TimerComponent;
 struct Damage;
 struct Inventory;
 struct WeaponMini;
+struct PlayerSpecific;
 
 class Sprite;
 class MovmentAI;
 
 enum class ID_WEAPON;
+enum class ID_WEAPON_RARITY;
 
 #define INVENTORY_WIDTH 200
 
@@ -66,9 +68,6 @@ namespace ENTITY_CREATION_FUNCTIONS {
 		Damage          const& damage,
 		MovmentAI       const& movmentAI);
 }
-struct UpgradeSystem : public ECS::System {
-
-};
 
 struct PhysicsSystem : public ECS::System {
 public:
@@ -97,6 +96,10 @@ struct WeaponLibrary {
 	template<typename T>
 	void insertToLib();
 
+	void populateRaToWe();
+
+	std::unordered_map<ID_WEAPON_RARITY, std::vector<ID_WEAPON>> rarityToWeaponsMap;
+
 	std::unordered_map<ID_WEAPON, CreateMiniFunc> weaponMiniCreationMap;
 	std::unordered_map<ID_WEAPON, CreateNormalFunc> weaponNormalCreationMap;
 	std::unordered_map<ID_WEAPON, WeaponBehaviour> weaponBehaviourMap;
@@ -104,9 +107,15 @@ struct WeaponLibrary {
 	WeaponLibrary();
 };
 
+struct WeaponHandOut : public ECS::System {
+	void update();
+};
+
 struct InputSystem : public ECS::System {
 private:
 	void breaksVelocity(RigidBody& rigidBody);
+	void shoot(ECS::Entity entity ,Transforms const& transform, RigidBody const& rigidBody, Sprite const& sprite, TimerComponent& timer);
+	void fly(Transforms const& transform, RigidBody& rigidBody, Sprite& sprite, PlayerSpecific const& pSpecific);
 public:
 	void update();
 };

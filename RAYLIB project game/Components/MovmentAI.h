@@ -11,7 +11,7 @@ public:
 	bool DistanceW;
 
 
-	void chase(const raylib::Vector2& pos, const raylib::Vector2& posToChase, raylib::Vector2& velocity, float& angle, float speed, float seeRadius = std::numeric_limits<float>::infinity());
+	static void chase(const raylib::Vector2& pos, const raylib::Vector2& posToChase, raylib::Vector2& velocity, float& angle, float speed, float seeRadius = std::numeric_limits<float>::infinity());
 
 	/**
 	* @brief a * sin (x * PI / b)

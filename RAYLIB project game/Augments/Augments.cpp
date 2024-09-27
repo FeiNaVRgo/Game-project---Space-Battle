@@ -1,13 +1,17 @@
 #include "Augments.h"
 
+//#include <type_traits>
+
 #include "../Components/Damage.h"
 #include "../Components/Health.h"
 
-Augment::Augment(AugmentDispatcher& augDispatcher, UpgradesTable const& upgTable, Target const target, ID_AUGMENT id) {
+template<typename T>
+Augment<T>::Augment(AugmentDispatcher& augDispatcher, UpgradesTable const& upgTable, Target const target, ID_AUGMENT id) {
 
 }
 
-void AugmentDispatcher::addAugment(Augment& aug) {
+template<typename T>
+void AugmentDispatcher::addAugment(T& aug) {
 	queue_init.emplace(aug.initWhenGivenToPlayer);
 	hash_behaviour.try_emplace(aug.id, aug.activeBehaviour);
 }

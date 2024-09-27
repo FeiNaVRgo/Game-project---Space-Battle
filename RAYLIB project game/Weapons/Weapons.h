@@ -85,11 +85,13 @@ struct IWeapon {
 		static void d_createMini() { assert(1 > 2 && "static virtual from IWeapon called"); }
 		static void d_createNormal(Inventory& inv, WeaponMini& weaponMini) { assert(1 > 2 && "static virtual from IWeapon called"); }
 		static void d_behaviourWeaponNormal(ECS::Entity weaponNormalEntity) { assert(1 > 2 && "static virtual from IWeapon called"); }
+		static ID_WEAPON_RARITY d_getIdWeaponRarity() {}
 	};
 
 	virtual_static_method(d_createMini, void(void), T, defaults);
 	virtual_static_method(d_createNormal, void(Inventory&, WeaponMini&), T, defaults);
 	virtual_static_method(d_behaviourWeaponNormal, void(ECS::Entity), T, defaults);
+	virtual_static_method(d_getIdWeaponRarity, ID_WEAPON_RARITY(void), T, defaults);
 
 	static void createMini() {
 		d_createMini();
@@ -99,6 +101,10 @@ struct IWeapon {
 	}
 	static void behaviourNormal(ECS::Entity weaponNormalEntity) {
 		d_behaviourWeaponNormal(weaponNormalEntity);
+	}
+
+	static ID_WEAPON_RARITY getIdWeaponRarity() {
+		return d_getIdWeaponRarity();
 	}
 	//lol
 	static void entityAngleToPos(raylib::Vector2 const& entityPos, float& angle, raylib::Vector2 const& pos);
@@ -110,16 +116,19 @@ struct Weapon_CANON : IWeapon<Weapon_CANON> {
 	static void d_createMini();
 	static void d_createNormal(Inventory& inv, WeaponMini& weaponMini);
 	static void d_behaviourWeaponNormal(ECS::Entity weaponNormalEntity);
+	static ID_WEAPON_RARITY d_getIdWeaponRarity();
 };
 
 struct Weapon_MINIGUN : IWeapon<Weapon_MINIGUN> {
 	static void d_createMini();
 	static void d_createNormal(Inventory& inv, WeaponMini& weaponMini);
 	static void d_behaviourWeaponNormal(ECS::Entity weaponNormalEntity);
+	static ID_WEAPON_RARITY d_getIdWeaponRarity();
 };
 
 struct Weapon_LASERPISTOL : IWeapon<Weapon_LASERPISTOL> {
 	static void d_createMini();
 	static void d_createNormal(Inventory& inv, WeaponMini& weaponMini);
 	static void d_behaviourWeaponNormal(ECS::Entity weaponNormalEntity);
+	static ID_WEAPON_RARITY d_getIdWeaponRarity();
 };

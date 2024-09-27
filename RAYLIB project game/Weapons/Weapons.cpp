@@ -44,6 +44,10 @@ inline std::optional<raylib::Vector2> IWeapon<T>::findEmptySlot(Inventory& inv, 
 	return std::nullopt;
 }
 
+ID_WEAPON_RARITY Weapon_CANON::d_getIdWeaponRarity() {
+	return ID_WEAPON_RARITY::COMMON;
+}
+
 void Weapon_CANON::d_createMini() {
 
 	auto const& canonMini = G::gCoordinator.CreateEntity();
@@ -55,7 +59,7 @@ void Weapon_CANON::d_createMini() {
 	G::gCoordinator.AddComponent<WeaponMini>(canonMini, WeaponMini{
 		.isHeld = false,
 		.isEquipped = false,
-		.rarity = ID_WEAPON_RARITY::COMMON,
+		.rarity = Weapon_CANON::d_getIdWeaponRarity(),
 		.name = "OMNIPOTENT CANON",
 		.description = "This canon transcendents all of universe",
 		.id = ID_WEAPON::ID_CANON
@@ -195,6 +199,10 @@ void Weapon_CANON::d_behaviourWeaponNormal(ECS::Entity weaponNormalEntity) {
 	}
 }
 
+ID_WEAPON_RARITY Weapon_MINIGUN::d_getIdWeaponRarity() {
+	return ID_WEAPON_RARITY::EPIC;
+}
+
 void Weapon_MINIGUN::d_createMini() {
 	auto const& miniGunMini = G::gCoordinator.CreateEntity();
 	auto& inventory = G::gCoordinator.GetComponent<Inventory>(G::player);
@@ -205,7 +213,7 @@ void Weapon_MINIGUN::d_createMini() {
 	G::gCoordinator.AddComponent<WeaponMini>(miniGunMini, WeaponMini{
 		.isHeld = false,
 		.isEquipped = false,
-		.rarity = ID_WEAPON_RARITY::EPIC,
+		.rarity = Weapon_MINIGUN::d_getIdWeaponRarity(),
 		.name = "OMNIPOTENT CANON",
 		.description = "A minigun to shred all enemies",
 		.id = ID_WEAPON::ID_MINIGUN
@@ -344,6 +352,10 @@ void Weapon_MINIGUN::d_behaviourWeaponNormal(ECS::Entity weaponNormalEntity) {
 	}
 }
 
+ID_WEAPON_RARITY Weapon_LASERPISTOL::d_getIdWeaponRarity() {
+	return ID_WEAPON_RARITY::RARE;
+}
+
 void Weapon_LASERPISTOL::d_createMini() {
 	auto const& miniLaserPistol = G::gCoordinator.CreateEntity();
 	auto& inventory = G::gCoordinator.GetComponent<Inventory>(G::player);
@@ -354,7 +366,7 @@ void Weapon_LASERPISTOL::d_createMini() {
 	G::gCoordinator.AddComponent<WeaponMini>(miniLaserPistol, WeaponMini{
 		.isHeld = false,
 		.isEquipped = false,
-		.rarity = ID_WEAPON_RARITY::RARE,
+		.rarity = Weapon_LASERPISTOL::d_getIdWeaponRarity(),
 		.name = "yippe LASER PISTOL",
 		.description = "Pistol moment",
 		.id = ID_WEAPON::ID_LASERPISTOL

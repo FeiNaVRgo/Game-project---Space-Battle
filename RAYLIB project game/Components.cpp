@@ -173,21 +173,41 @@ void WeaponLibrary::insertToLib() {
 	id_name.erase(0, 13);//erase "struct weapon" at beginning  
 	id_name.insert(0, "ID");//add "ID" at beginning
 
+	//now id_name is matching naming pattern from enum class ID_WEAPON
 	auto id_weapon = magic_enum::enum_cast<ID_WEAPON>(id_name);
 
 	assert(id_weapon.has_value() && "you fucked up naming man");
+
+	rarityToWeaponsMap.at(T::d_getIdWeaponRarity()).emplace_back(id_weapon.value());
 
 	weaponMiniCreationMap.try_emplace(id_weapon.value(), T::createMini);
 	weaponNormalCreationMap.try_emplace(id_weapon.value(), T::createNormal);
 	weaponBehaviourMap.try_emplace(id_weapon.value(), T::behaviourNormal);
 }
 
+void WeaponLibrary::populateRaToWe() {
+	auto elem_count = magic_enum::enum_count<ID_WEAPON_RARITY>();
+
+	for (int i = 0; i < elem_count; i++) {
+		rarityToWeaponsMap.try_emplace(ID_WEAPON_RARITY(i), std::vector<ID_WEAPON>{});
+	}
+}
+
 WeaponLibrary::WeaponLibrary() {
+	populateRaToWe();
 	insertToLib<Weapon_CANON>();
 	insertToLib<Weapon_MINIGUN>();
 	insertToLib<Weapon_LASERPISTOL>();
 }
- 
+
+void WeaponHandOut::update() {
+	if (G::gEnemyCounter == 0) {
+		//TODO -- use stack for it
+
+		
+	}
+}
+
 inline void InputSystem::breaksVelocity(RigidBody& rigidBody) {
 	if (IsKeyDown(KeyInputs::BREAKS)) {
 		if (rigidBody.velocity.x >= 5.f) {
@@ -212,12 +232,67 @@ inline void InputSystem::breaksVelocity(RigidBody& rigidBody) {
 	}
 }
 
+inline void InputSystem::shoot(ECS::Entity entity, Transforms const& transform, RigidBody const& rigidBody, Sprite const& sprite, TimerComponent& timer) {
+	timer.timerCont.insertTimer(2, Timer(400, TIMER_ID::WAITTIMER_ID));
+
+	if (raylib::IsKeyOrMouseDown(KeyInputs::SHOOT) && timer.timerCont.checkTimer(2)) {
+		timer.timerCont.resetTimer(2);
+		ECS::Entity entity1 = G::gCoordinator.CreateEntity();
+		G::gCoordinator.AddComponent<Transforms>(entity1, Transforms{
+			.position = transform.position,
+			.rotation = raylib::Vector2(0.0f, 0.0f),
+			.scale = raylib::Vector2(1.0f, 1.0f)
+			});
+		G::gCoordinator.AddComponent<RigidBody>(entity1, RigidBody{
+			.velocity = raylib::Vector2(3.0f * rigidBody.velocity.x, 3.0f * rigidBody.velocity.y),
+			.acceleration = raylib::Vector2(0.0f, 0.0f),
+			.hitbox = {{0.0f, 0.0f, 18.0f, 18.0f}, raylib::Color::Green()},
+			.isColliding = false,
+			.onWhatSideIsColliding = {false ,false ,false ,false }
+			});
+		G::gCoordinator.AddComponent<Sprite>(entity1, Sprite{
+			.sprite = G::playerBulletTexture2,
+			.angle = sprite.angle,
+			.tint = {255, 255, 255, 255},
+			.origin = raylib::Vector2(G::playerBulletTexture2.width * 0.5f, G::playerBulletTexture2.height * 0.5f)
+			});
+		G::gCoordinator.AddComponent<Health>(entity1, Health{
+			.maxHealth = 5.0f,
+			.health = 5.0f,
+			.isDamaged = false,
+			.frameImmunityTime = 1,
+			.healthToSubstract = 0.0f,
+			.toBeDamaged = false
+			});
+		G::gCoordinator.AddComponent<Bullet>(entity1, Bullet{
+			});
+		G::gCoordinator.AddComponent<EntitySpecific>(entity1, EntitySpecific{
+			.id = ID_ENTITY::PLAYER_BULLET_ID
+			});
+		ComponentCommons::addComponent<TimerComponent>(entity1);
+		ComponentCommons::addComponent<Damage>(entity1, 5, 5);
+		ComponentCommons::addComponent<MovmentAI>(entity1, false, false);
+		ComponentCommons::addComponent<JustBorn>(entity1, entity, transform.position, rigidBody.velocity, sprite.angle, GetTime());
+
+		auto& t = G::gCoordinator.GetComponent<RigidBody>(entity1);
+		spatial_hash::gGird.insert(entity1, t.hitbox.hitboxRect);
+	}
+}
+
+inline void InputSystem::fly(Transforms const& transform, RigidBody& rigidBody, Sprite& sprite, PlayerSpecific const& pSpecific) {
+	if (raylib::IsKeyOrMouseDown(KeyInputs::FLY)) {
+		auto m_v = GetScreenToWorld2D(GetMousePosition(), G::camera);
+		MovmentAI::chase(transform.position, m_v, rigidBody.velocity, sprite.angle, 80.0f * pSpecific.dash);
+	}
+}
+
 void InputSystem::update() {
 	for (auto const& entity : mEntities) {
 		auto& transform = G::gCoordinator.GetComponent<Transforms>(entity);
 		auto& rigidBody = G::gCoordinator.GetComponent<RigidBody>(entity);
 		auto& sprite = G::gCoordinator.GetComponent<Sprite>(entity);
 		auto& pSpecific = G::gCoordinator.GetComponent<PlayerSpecific>(entity);
+		auto& timer = G::gCoordinator.GetComponent<TimerComponent>(entity);
 
 		G::playerBoundingBoxForBullets = { G::gPlayerPos.x - G::screenWidth * 0.5f, G::gPlayerPos.y - G::screenHeight * 0.5f, G::screen.width, G::screen.height };
 
@@ -257,67 +332,14 @@ void InputSystem::update() {
 			pSpecific.dash -= GetFrameTime() * 6.0f;
 		}
 
-		breaksVelocity(rigidBody);
-
-
-		if (raylib::IsKeyOrMouseDown(KeyInputs::FLY)) {
-			auto m_v = GetScreenToWorld2D(GetMousePosition(), G::camera);
-			auto v = raylib::Vector2((m_v.x - transform.position.x) / Vector2Distance(transform.position, m_v),
-				(m_v.y - transform.position.y) / Vector2Distance(transform.position, m_v));
-			sprite.angle = atan2f(v.x, -v.y);
-			rigidBody.velocity.x = sinf(sprite.angle) * 80.0f * pSpecific.dash;
-			rigidBody.velocity.y = -cosf(sprite.angle) * 80.0f * pSpecific.dash;
-		}
-
 		if (IsKeyPressed(KeyboardKey::KEY_H)) {
 			if (!G::debugMode) { G::debugMode = true; }
 			else { G::debugMode = false; }
 		}
-
-		G::gTimer.insertTimer(1, Timer(400, TIMER_ID::WAITTIMER_ID));
-
-		if (raylib::IsKeyOrMouseDown(KeyInputs::SHOOT) && G::gTimer.checkTimer(1)) {
-			G::gTimer.resetTimer(1);
-			ECS::Entity entity1 = G::gCoordinator.CreateEntity();
-			G::gCoordinator.AddComponent<Transforms>(entity1, Transforms{
-				.position = transform.position,
-				.rotation = raylib::Vector2(0.0f, 0.0f),
-				.scale = raylib::Vector2(1.0f, 1.0f)
-				});
-			G::gCoordinator.AddComponent<RigidBody>(entity1, RigidBody{
-				.velocity = raylib::Vector2(3.0f * rigidBody.velocity.x / pSpecific.dash, 3.0f * rigidBody.velocity.y / pSpecific.dash),
-				.acceleration = raylib::Vector2(0.0f, 0.0f),
-				.hitbox = {{0.0f, 0.0f, 18.0f, 18.0f}, raylib::Color::Green()},
-				.isColliding = false,
-				.onWhatSideIsColliding = {false ,false ,false ,false }
-				});
-			G::gCoordinator.AddComponent<Sprite>(entity1, Sprite{
-				.sprite = G::playerBulletTexture2,
-				.angle = sprite.angle,
-				.tint = {255, 255, 255, 255},
-				.origin = raylib::Vector2(G::playerBulletTexture2.width * 0.5f, G::playerBulletTexture2.height * 0.5f)
-				});
-			G::gCoordinator.AddComponent<Health>(entity1, Health{
-				.maxHealth = 5.0f,
-				.health = 5.0f,
-				.isDamaged = false,
-				.frameImmunityTime = 1,
-				.healthToSubstract = 0.0f,
-				.toBeDamaged = false
-				});
-			G::gCoordinator.AddComponent<Bullet>(entity1, Bullet{
-				});
-			G::gCoordinator.AddComponent<EntitySpecific>(entity1, EntitySpecific{
-				.id = ID_ENTITY::PLAYER_BULLET_ID
-				});
-			ComponentCommons::addComponent<TimerComponent>(entity1);
-			ComponentCommons::addComponent<Damage>(entity1, 5, 5);
-			ComponentCommons::addComponent<MovmentAI>(entity1, false, false);
-			ComponentCommons::addComponent<JustBorn>(entity1, entity, transform.position, rigidBody.velocity, sprite.angle, GetTime());
-
-			auto& t = G::gCoordinator.GetComponent<RigidBody>(entity1);
-			spatial_hash::gGird.insert(entity1, t.hitbox.hitboxRect);
-		}
+		
+		breaksVelocity(rigidBody);
+		fly(transform, rigidBody, sprite, pSpecific);
+		shoot(entity, transform, rigidBody, sprite, timer);
 	}
 }
 
@@ -477,7 +499,7 @@ void EnemyAIMovmentSystem::update() {
 		auto& movmentAI = G::gCoordinator.GetComponent<MovmentAI>(entity);
 		//auto& enemy = GLOBALS::gCoordinator.GetComponent<Enemy>(entity);
 
-		movmentAI.chase(transform.position, G::gPlayerPos, rigidBody.velocity, sprite.angle, 50.0f);
+		MovmentAI::chase(transform.position, G::gPlayerPos, rigidBody.velocity, sprite.angle, 50.0f);
 	}
 }
 

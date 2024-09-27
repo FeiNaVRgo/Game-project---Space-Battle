@@ -44,11 +44,12 @@ struct UpgradesTable {
 class AugmentDispatcher;
 
 //question: how to add augment to player?
+template<typename T>
 class Augment {
-private:
-	using Target   = ECS::Entity;
 public:
-	virtual  Augment(AugmentDispatcher& augDispatcher, UpgradesTable const& upgTable, Target const target, ID_AUGMENT id);//TODO -- make implementation
+	using Target   = ECS::Entity;
+	
+	Augment(AugmentDispatcher& augDispatcher, UpgradesTable const& upgTable, Target const target, ID_AUGMENT id);//TODO -- make implementation
 	virtual ~Augment() = default;
 
 	virtual void initWhenGivenToPlayer() = 0;
@@ -57,7 +58,7 @@ public:
 	UpgradesTable upgTable;
 	Target        augTarget;
 	ID_AUGMENT    id;
-};
+};  
 
 class AugmentDispatcher {//maybe move dispatcher to diffrent file
 public:
@@ -66,15 +67,26 @@ public:
 
 	std::queue<Init>                          queue_init;
 	std::unordered_map<ID_AUGMENT, Behaviour> hash_behaviour;
-
-	void addAugment(Augment& aug);
+	
+	template<typename T>
+	void addAugment(T& aug);
+	
 	void dispatchInit();
 	void doBehaviour();
 	void removeAugment(ID_AUGMENT id);//for removing active behaviour funcs
 };
 
-class Augment_CLASSIC : public Augment {
-	Augment_CLASSIC(AugmentDispatcher& augDispatcher, UpgradesTable const& upgTable, Target const target, ID_AUGMENT id) : Augment(augDispatcher, upgTable, target, id);
+class Augment_CLASSIC : public Augment<Augment_CLASSIC> {
+	Augment_CLASSIC(
+		AugmentDispatcher& augDispatcher, 
+		UpgradesTable const& upgTable, 
+		Target const target, 
+		ID_AUGMENT id
+	) : Augment(
+			augDispatcher, 
+			upgTable,
+			target, 
+			id) {};
 
 	void initWhenGivenToPlayer() override;
 	void activeBehaviour()       override;
