@@ -247,6 +247,9 @@
     <ClInclude Include="UI.h" />
     <ClInclude Include="utils.hpp" />
     <ClInclude Include="Weapons\utils-virtual-static-method.h" />
+    <ClInclude Include="Weapons\WeaponDef\Cannon.h" />
+    <ClInclude Include="Weapons\WeaponEnumeraions.h" />
+    <ClInclude Include="Weapons\Weapons-experimental.h" />
     <ClInclude Include="Weapons\Weapons.h" />
   </ItemGroup>
   <ItemGroup>

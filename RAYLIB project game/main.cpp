@@ -11,6 +11,8 @@
 #include "Weapons/Weapons.h"
 #include "spatialHash/grid.h"
 
+#include "Weapons/WeaponDef/Cannon.h"
+
 #if defined(PLATFORM_DESKTOP)
 #define GLSL_VERSION            330
 #else   // PLATFORM_ANDROID, PLATFORM_WEB
@@ -18,13 +20,10 @@
 #endif
 
 int main() {
-   //TODO -- will need to make inventory better - shit is broken - sometimes weapon normal is not destructed and sometimes weapon mini sprite is stucked in slot(it is still considered 'free' slot)
-   //TODO -- split up component systems into separate files
-   //TODO -- application class for all global variables
+   //TODO -- application class for all global variables -PRIORITY RIGHT NOW
    //TODO -- namespace for components
    //TODO -- texture manager class - will work on strings
-   //TODO -- more components should be tied to weapons -
-   //TODO -- script for weapons
+   //TODO -- more components should be tied to weapons
     
     // Initialization
     //--------------------------------------------------------------------------------------

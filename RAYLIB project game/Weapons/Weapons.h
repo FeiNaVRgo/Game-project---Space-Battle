@@ -9,38 +9,19 @@
 #include "../FunctionalBox.h"
 #include "../ECS.h"
 #include "utils-virtual-static-method.h"
+#include "WeaponEnumeraions.h"
 
 struct Inventory;
 
-enum class ID_WEAPON_TYPE {
-	NORMAL = 1,
-	MINI   = 2
-};
-
-enum class ID_WEAPON {
-	ID_CANON       = 0,
-	ID_MINIGUN     = 1,
-	ID_LASERPISTOL = 2
-};
-
-enum class ID_WEAPON_RARITY {
-	COMMON           = 0,
-	UNCOMMON         = 1,
-	RARE             = 2,
-	EPIC             = 3,
-	INSANE           = 4,
-	LEGENDARY        = 5,
-	MYTHICAL         = 6,
-	TRANSCENDENT     = 7
-};
-
-struct WeaponInfo {
+class WeaponInfo {
+private:
 	FunctionalBox box_name;
 	FunctionalBox box_stats;
 	FunctionalBox box_description;
 	FunctionalBox box_rarity;
-	
-	void updateInfoVariables(ECS::Entity weaponMini);
+public:
+	WeaponInfo(ECS::Entity weaponMini);
+
 	void drawInfo(ECS::Entity weaponMini);
 };
 
@@ -62,7 +43,7 @@ struct WeaponMini {
 
 	raylib::Vector2 posToStay;
 	
-	WeaponInfo weaponInfo{};
+	//WeaponInfo weaponInfo{};
 	
 }; 
 

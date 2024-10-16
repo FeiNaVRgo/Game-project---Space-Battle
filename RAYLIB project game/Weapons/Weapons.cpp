@@ -14,13 +14,12 @@
 #include "../Components/Bullet.h"
 #include "../Components/MovmentAI.h"
 
-void WeaponInfo::updateInfoVariables(ECS::Entity weaponMini) { 
-	//auto& damage_weapon = G::gCoordinator.GetComponent<Damage>(weaponMini);
-	box_name = FunctionalBox(raylib::Text("lol"), { 0.f, 0.f, 10.f, 10.f }, BLACK);
+WeaponInfo::WeaponInfo(ECS::Entity weaponMini) {
+
 }
 
 void WeaponInfo::drawInfo(ECS::Entity weaponMini) {
-	updateInfoVariables(weaponMini);
+	
 }
 
 template<typename T>
@@ -214,7 +213,7 @@ void Weapon_MINIGUN::d_createMini() {
 		.isHeld = false,
 		.isEquipped = false,
 		.rarity = Weapon_MINIGUN::d_getIdWeaponRarity(),
-		.name = "OMNIPOTENT CANON",
+		.name = "MINIGUN",
 		.description = "A minigun to shred all enemies",
 		.id = ID_WEAPON::ID_MINIGUN
 		});

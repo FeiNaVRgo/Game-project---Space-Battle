@@ -22,6 +22,7 @@ inline void StackFunctions::PlayGame() {
     if (G::GameIsPlaying) {
         std::any_cast<std::shared_ptr<RenderSystem>>(G::renderSystem)->updateSprites();
         std::any_cast<std::shared_ptr<PhysicsSystem>>(G::physicsSystem)->update(GetFrameTime());
+
         std::any_cast<std::shared_ptr<InputSystem>>(G::inputSystem)->update();
         std::any_cast<std::shared_ptr<EnemySpawningSystem>>(G::enemySpawningSystem)->update();
         std::any_cast<std::shared_ptr<EnemyAIMovmentSystem>>(G::enemyAIMovmentSystem)->update();
