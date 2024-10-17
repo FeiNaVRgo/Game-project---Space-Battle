@@ -241,6 +241,15 @@
     <ClInclude Include="Weapons\WeaponDef\Cannon.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Weapons\WeaponDef\Minigun.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Weapons\WeaponDef\LaserPistol.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Application.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\shaders\glsl100\pixelizer.glsl" />

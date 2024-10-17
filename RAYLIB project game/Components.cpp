@@ -4,6 +4,10 @@
 #include "globals.h"
 
 #include "./Weapons/Weapons.h"
+#include "./Weapons/WeaponDef/Cannon.h"
+#include "./Weapons/WeaponDef/Minigun.h"
+#include "./Weapons/WeaponDef/LaserPistol.h"
+
 #include "EntityIds.h"
 
 #include "Components/Transforms.h"
@@ -178,11 +182,16 @@ void WeaponLibrary::insertToLib() {
 
 	assert(id_weapon.has_value() && "you fucked up naming man");
 
-	rarityToWeaponsMap.at(T::d_getIdWeaponRarity()).emplace_back(id_weapon.value());
+	rarityToWeaponsMap.at(T::getIdWeaponRarity()).emplace_back(id_weapon.value());
 
-	weaponMiniCreationMap.try_emplace(id_weapon.value(), T::createMini);
-	weaponNormalCreationMap.try_emplace(id_weapon.value(), T::createNormal);
-	weaponBehaviourMap.try_emplace(id_weapon.value(), T::behaviourNormal);
+	static T it;
+	CreateMiniFunc   crMini = std::bind(&T::p_CreateMini,   &it);
+	CreateNormalFunc crNorm = std::bind(&T::p_CreateNormal, &it, std::placeholders::_1, std::placeholders::_2);
+	WeaponBehaviour  wpnBeh = std::bind(&T::p_Behaviour,    &it, std::placeholders::_1);
+
+	weaponMiniCreationMap.try_emplace(id_weapon.value(), crMini);
+	weaponNormalCreationMap.try_emplace(id_weapon.value(), crNorm);
+	weaponBehaviourMap.try_emplace(id_weapon.value(), wpnBeh);
 }
 
 void WeaponLibrary::populateRaToWe() {
@@ -315,13 +324,13 @@ void InputSystem::update() {
 		G::gPlayerPos = transform.position;
 
 		if (IsKeyPressed(KeyboardKey::KEY_C)) {
-			Weapon_CANON::createMini();
+			Weapon_CANON().createMini();
 		}
 		if (IsKeyPressed(KeyboardKey::KEY_V)) {
-			Weapon_MINIGUN::createMini();
+			Weapon_MINIGUN().createMini();
 		}
 		if (IsKeyPressed(KeyboardKey::KEY_B)) {
-			Weapon_LASERPISTOL::createMini();
+			Weapon_LASERPISTOL().createMini();
 		}
 
 		if (IsKeyPressed(KeyInputs::DASH) && pSpecific.dash <= 1.0f) {

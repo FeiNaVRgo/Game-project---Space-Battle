@@ -59,6 +59,10 @@ template
 > 
 class BasicCreation : public ICreation {//less go
 public:
+	static inline ID_WEAPON_RARITY getIdWeaponRarity() {
+		return id_rarity;
+	}
+
 	inline void createMini() override {
 
 		auto const& mini_weapon_entity = G::gCoordinator.CreateEntity();
@@ -160,7 +164,7 @@ public:
 		angle = angle_temp;
 	}
 
-	virtual void shoot(ECS::Entity weaponNormalEntity, std::optional<ECS::Entity>& optEnt) = 0;
+	virtual void shoot(ECS::Entity weaponNormalEntity, std::optional<ECS::Entity> optEnt) = 0;
 };
 
 template<class T, long long fire_rate> 
@@ -170,11 +174,12 @@ public:
 		angle = 0;
 	}
 
-	void shoot(ECS::Entity weaponNormalEntity, std::optional<ECS::Entity>& optEnt) override {
+	void shoot(ECS::Entity weaponNormalEntity, std::optional<ECS::Entity> optEnt) override {
 		auto const& transforms_weapon = G::gCoordinator.GetComponent<Transforms>(weaponNormalEntity);
 		auto& sprite_weapon = G::gCoordinator.GetComponent<Sprite>(weaponNormalEntity);
 		auto& timer_weapon = G::gCoordinator.GetComponent<TimerComponent>(weaponNormalEntity);
 		auto& normal_weapon = G::gCoordinator.GetComponent<WeaponNormal>(weaponNormalEntity);
+		auto& damage_weapon = G::gCoordinator.GetComponent<Damage>(weaponNormalEntity);
 
 		timer_weapon.timerCont.insertTimer(1, Timer(fire_rate, TIMER_ID::WAITTIMER_ID));
 
@@ -223,8 +228,9 @@ public:
 					TimerComponent{
 					},
 					Damage{
-						.damage = 5.f,
-						.damageOnContact = 5.f
+						.damage = damage_weapon.damage,
+						.damageOnContact = damage_weapon.damageOnContact,
+						.damageType = damage_weapon.damageType
 					},
 					MovmentAI{
 						.DistanceH = false,
@@ -258,7 +264,7 @@ class Behaviour
 public:
 	void behaviour(ECS::Entity weaponNormalEntity) {
 		VarModifier::modify();
-		Shooting::shoot(weaponNormalEntity, Detecting::detect(weaponNormalEntity));;
+		Shooting::shoot(weaponNormalEntity, Detecting::detect(weaponNormalEntity));
 	}
 };
 
@@ -268,11 +274,10 @@ template
 	template <class T> class P_VarModify,
 	template <class T> class P_Detection,
 	template <class T> class P_Shooting
-	
 >
 class Weapon  
-	: private P_Creation<Weapon<P_Creation, P_VarModify, P_Detection, P_Shooting>>
-	, private Behaviour<P_VarModify, P_Detection, P_Shooting>
+	: public P_Creation<Weapon<P_Creation, P_VarModify, P_Detection, P_Shooting>>
+	, public Behaviour<P_VarModify, P_Detection, P_Shooting>
 {
 private:
 	using Wpn = Weapon<P_Creation, P_VarModify, P_Detection, P_Shooting>;
@@ -288,7 +293,6 @@ public:
 	}
 
 	void p_Behaviour(ECS::Entity weaponNormalEntity) {
-		//Behaviour::behaviour(weaponNormalEntity);
 		this->behaviour(weaponNormalEntity);
 	}
 };

@@ -15,12 +15,12 @@
 #endif
 
 namespace KeyInputs{
-	inline uint16_t SHOOT = MouseButton::MOUSE_BUTTON_LEFT;
-	inline uint16_t FLY = KeyboardKey::KEY_W;
-	inline uint16_t INVENTORY = KeyboardKey::KEY_E;
-	inline uint16_t BREAKS = KeyboardKey::KEY_R;
-	inline uint16_t DASH = KeyboardKey::KEY_SPACE;
-	inline uint16_t NEXT_WAVE = KeyboardKey::KEY_ENTER;
+	inline uint16_t SHOOT			= MouseButton::MOUSE_BUTTON_LEFT;
+	inline uint16_t FLY				= KeyboardKey::KEY_W;
+	inline uint16_t INVENTORY		= KeyboardKey::KEY_E;
+	inline uint16_t BREAKS			= KeyboardKey::KEY_R;
+	inline uint16_t DASH			= KeyboardKey::KEY_SPACE;
+	inline uint16_t NEXT_WAVE		= KeyboardKey::KEY_ENTER;
 }
 
 namespace G {
@@ -33,7 +33,6 @@ namespace G {
 	inline raylib::Window window(screenWidth, screenHeight, "SPACE BATTLE");
 	inline TimerContainer gTimer;
 	inline ECS::Coordinator gCoordinator;
-	inline ECS::Coordinator upgradeCoordinator;
 	inline bool debugMode = false;
 	inline uint32_t gEnemyCounter = 0;
 	inline uint32_t gLevel = 0;
