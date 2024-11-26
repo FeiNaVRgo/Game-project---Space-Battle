@@ -5,20 +5,21 @@
 #include <unordered_map>
 #include <memory>
 #include "ECS.h"
-#include "globals.h"
-#include "EntityIds.h"
+
 
 namespace events {
-	using Listener = ECS::Entity;
-	using Target = ECS::Entity;
-	using Args = std::list<float>;
+	using Listener   = ECS::Entity;
+	using Target     = ECS::Entity;
+	using Args       = std::list<float>;
 	using ActionFunc = std::function<void(Target, Args)>;
-	using Condition = std::function<bool(Listener)>;
+	using Condition  = std::function<bool(Listener)>;  
 
 	struct Actions {
-		static inline void heal(Target target, Args args) {
+		static inline void heal(Target target, Args const& args) {
 			//bruh
 		}
+		static void splitBullet(Target target, Args const& args);
+	
 	};
 
 	struct Action {
@@ -26,7 +27,7 @@ namespace events {
 	};
 
 	struct Event {
-		std::set<Target> targets;
+		Target target;
 		Action action;
 		Args args;
 	};
@@ -37,20 +38,16 @@ namespace events {
 		std::queue<Event> mEvents{};
 
 		void dispatchEvents(std::queue<Event>& events) {
-			if (events.empty()) {
-				return;
+			while (!events.empty()) {
+				doEvent(events.front());
+				events.pop();
 			}
-			doEvent(events.front());
-			events.pop();
-			dispatchEvents(events);
 		}
 	public:
 		EventManager() = default;
 
-		void doEvent(Event event) {
-			for (const auto& target : event.targets) {
-				event.action.func(target, event.args);
-			}
+		void doEvent(Event const& event) const {
+			event.action.func(event.target, event.args);
 		}
 
 		void dispatchEvents() {

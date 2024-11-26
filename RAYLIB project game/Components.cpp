@@ -31,6 +31,7 @@
 
 #include "GeometryCalc.hpp"
 #include "utils.hpp"
+#include <numbers>
 
 inline void ENTITY_CREATION_FUNCTIONS::createBullet(ECS::Entity parent,
 	Transforms      const& transforms,
@@ -209,10 +210,48 @@ WeaponLibrary::WeaponLibrary() {
 	insertToLib<Weapon_LASERPISTOL>();
 }
 
-void WeaponHandOut::update() {
-	if (G::gEnemyCounter == 0) {
-		//TODO -- use stack for it
+ID_WEAPON WeaponHandOut::getRandWeapon(ID_WEAPON_RARITY id_rarity_weapon) {
+	auto& lib = G::gCoordinator.GetComponent<WeaponLibrary>(G::player);
+	std::uniform_int_distribution<int> getW(0, (int)lib.rarityToWeaponsMap.at(id_rarity_weapon).size());
 
+	auto w_index = getW(gen);
+	return lib.rarityToWeaponsMap.at(id_rarity_weapon).at(w_index);
+}
+
+ID_WEAPON_RARITY WeaponHandOut::calcRarity() {
+	std::uniform_int_distribution getPercent(0, 100);
+	auto percent = getPercent(gen);
+
+	if (percent >= 0 && percent <= 30) {
+		return ID_WEAPON_RARITY::COMMON;
+	}
+	else if (percent > 30 && percent <= 50) {
+		return ID_WEAPON_RARITY::UNCOMMON;
+	}
+	else if (percent > 50 && percent <= 65) {
+		return ID_WEAPON_RARITY::RARE;
+	}
+	else if (percent > 65 && percent <= 75) {
+		return ID_WEAPON_RARITY::EPIC;
+	}
+	else if (percent > 75 && percent <= 84) {
+		return ID_WEAPON_RARITY::INSANE;
+	}
+	else if (percent > 84 && percent <= 91) {
+		return ID_WEAPON_RARITY::LEGENDARY;
+	}
+	else if (percent > 91 && percent <= 96) {
+		return ID_WEAPON_RARITY::MYTHICAL;
+	}
+	else if (percent > 96 && percent <= 100) {
+		return ID_WEAPON_RARITY::TRANSCENDENT;
+	}
+}
+
+void WeaponHandOut::update() {
+	if (G::gEnemyCounter == 0 && !handOut) {
+		auto& lib = G::gCoordinator.GetComponent<WeaponLibrary>(G::player);
+		auto id_weapon = getRandWeapon(calcRarity());
 		
 	}
 }
@@ -302,10 +341,6 @@ void InputSystem::update() {
 		auto& sprite = G::gCoordinator.GetComponent<Sprite>(entity);
 		auto& pSpecific = G::gCoordinator.GetComponent<PlayerSpecific>(entity);
 		auto& timer = G::gCoordinator.GetComponent<TimerComponent>(entity);
-
-		G::playerBoundingBoxForBullets = { G::gPlayerPos.x - G::screenWidth * 0.5f, G::gPlayerPos.y - G::screenHeight * 0.5f, G::screen.width, G::screen.height };
-
-		G::playerBoundingBoxForBullets.DrawLines(RED);
 
 		static float minSpeed = 30;
 		static float minEffectLength = 10;

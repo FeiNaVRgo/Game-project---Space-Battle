@@ -8,3 +8,10 @@ void Health::drawHealthBar(const raylib::Vector2& origin, const raylib::Vector2&
 }
 
 void Health::drawDamageIndicator() {}
+
+void Health::clear() {
+	this->health = this->maxHealth;
+	this->healthToSubstract = 0;
+	this->isDamaged = false;
+	this->toBeDamaged = false;
+}

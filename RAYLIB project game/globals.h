@@ -6,7 +6,6 @@
 #include "Timer.h"
 #include "Stack.h"
 #include "UI.h"
-#include "EventManager.h"
 
 #if defined(PLATFORM_DESKTOP)
 #define GLSL_VERSION            330
@@ -52,7 +51,6 @@ namespace G {
 	inline std::any weaponSystem;
 	inline int zoomMode = 0;
 	inline bool exitWindow = false;
-	inline raylib::Rectangle playerBoundingBoxForBullets;
 	inline std::unordered_set<ECS::Entity> gEntitySetToBeDestroyed;
 	inline raylib::Shader gBloom = raylib::Shader(0, TextFormat("resources/shaders/glsl100/bloom.glsl", GLSL_VERSION));
 	#pragma region loadingTextures

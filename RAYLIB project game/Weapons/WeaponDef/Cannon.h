@@ -1,5 +1,9 @@
 #pragma once
 #include "../Weapons-experimental.h"
+#include "../WeaponPolicies/Creation/BasicCreation.h"
+#include "../WeaponPolicies/VarModifier/BasicVarModifier.h"
+#include "../WeaponPolicies/Detecting/ClosestTarget.h"
+#include "../WeaponPolicies/Shooting/BasicShooting.h"
 
 
 template<class T>
@@ -9,7 +13,7 @@ template<class T>
 using Cannon_VarMod = BasicVarModifier<T>;
 
 template<class T>
-using Cannon_Detect = ClosestEnemy<T, ID_ENTITY::ENEMY_ID, 800.f>;
+using Cannon_Detect = ClosestTarget<T, ID_ENTITY::ENEMY_ID, 800.f>;
 
 template<class T>
 using Cannon_Shooting = BasicShooting<T, 800>;

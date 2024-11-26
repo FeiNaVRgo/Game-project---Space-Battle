@@ -1,5 +1,5 @@
 #include "Augments.h"
-
+#include "../globals.h"
 //#include <type_traits>
 
 #include "../Components/Damage.h"
@@ -34,7 +34,7 @@ void AugmentDispatcher::removeAugment(ID_AUGMENT id) {
 }
 
 void Augment_CLASSIC::initWhenGivenToPlayer() {
-
+	auto& player_damage = G::gCoordinator.GetComponent<Damage>(G::player);
 }
 
 void Augment_CLASSIC::activeBehaviour() {

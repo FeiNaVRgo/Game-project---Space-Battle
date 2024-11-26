@@ -26,8 +26,8 @@ inline void StackFunctions::PlayGame() {
         std::any_cast<std::shared_ptr<InputSystem>>(G::inputSystem)->update();
         std::any_cast<std::shared_ptr<EnemySpawningSystem>>(G::enemySpawningSystem)->update();
         std::any_cast<std::shared_ptr<EnemyAIMovmentSystem>>(G::enemyAIMovmentSystem)->update();
-        std::any_cast<std::shared_ptr<CollisionSystem>>(G::collisionSystem)->update();
         std::any_cast<std::shared_ptr<BulletManipulationSystem>>(G::bulletManipulationSystem)->update();
+        std::any_cast<std::shared_ptr<CollisionSystem>>(G::collisionSystem)->update();
         std::any_cast<std::shared_ptr<HealthSystem>>(G::healthSystem)->update();
         std::any_cast<std::shared_ptr<WeaponSystem>>(G::weaponSystem)->update();
         std::any_cast<std::shared_ptr<EntityRemovalSystem>>(G::entityRemovalSystem)->update();

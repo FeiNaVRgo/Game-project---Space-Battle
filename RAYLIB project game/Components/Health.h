@@ -13,5 +13,7 @@ struct Health {
 	void drawHealthBar(const raylib::Vector2& origin, const raylib::Vector2& offsetFromOrigin);
 
 	void drawDamageIndicator();
+
+	void clear();
 };
 

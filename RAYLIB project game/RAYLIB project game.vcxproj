@@ -252,6 +252,12 @@
     <ClInclude Include="Weapons\WeaponDef\LaserPistol.h" />
     <ClInclude Include="Weapons\WeaponDef\Minigun.h" />
     <ClInclude Include="Weapons\WeaponEnumeraions.h" />
+    <ClInclude Include="Weapons\WeaponPolicies\Creation\BasicCreation.h" />
+    <ClInclude Include="Weapons\WeaponPolicies\Creation\ICreation.h" />
+    <ClInclude Include="Weapons\WeaponPolicies\Detecting\ClosestTarget.h" />
+    <ClInclude Include="Weapons\WeaponPolicies\Shooting\IShooting.h" />
+    <ClInclude Include="Weapons\WeaponPolicies\Shooting\BasicShooting.h" />
+    <ClInclude Include="Weapons\WeaponPolicies\VarModifier\BasicVarModifier.h" />
     <ClInclude Include="Weapons\Weapons-experimental.h" />
     <ClInclude Include="Weapons\Weapons.h" />
   </ItemGroup>

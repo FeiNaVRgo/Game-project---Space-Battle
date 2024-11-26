@@ -89,9 +89,9 @@ struct WeaponSystem : ECS::System {
 };
 
 struct WeaponLibrary {
-	using CreateMiniFunc =   std::function<void()>;
+	using CreateMiniFunc   = std::function<void()>;
 	using CreateNormalFunc = std::function<void(Inventory&, WeaponMini&)>;
-	using WeaponBehaviour =  std::function<void(ECS::Entity)>;
+	using WeaponBehaviour  = std::function<void(ECS::Entity)>;
 	
 	template<typename T>
 	void insertToLib();
@@ -108,6 +108,10 @@ struct WeaponLibrary {
 };
 
 struct WeaponHandOut : public ECS::System {
+	bool handOut = false;
+
+	ID_WEAPON getRandWeapon(ID_WEAPON_RARITY id_rarity_weapon);
+	ID_WEAPON_RARITY calcRarity();
 	void update();
 };
 

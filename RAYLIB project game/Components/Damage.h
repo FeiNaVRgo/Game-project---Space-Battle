@@ -16,6 +16,10 @@ struct Damage {
 	float damage;//1
 	float damageOnContact;//2
 	DAMAGE_TYPE damageType{};//3
+
+	Damage operator*(float left) {
+		return Damage(this->damage * left, this->damageOnContact * left, this->damageType);
+	}
 };
 
 

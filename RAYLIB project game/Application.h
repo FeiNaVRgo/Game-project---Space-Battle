@@ -1,6 +1,7 @@
 #pragma once
 #include <src/raylib-cpp.hpp>
 #include <string>
+#include <thread>
 #include "globals.h"
 #include "ECS.h"
 #include "Components.h"
@@ -201,6 +202,7 @@ private:
 
         G::window.SetExitKey(KEY_NULL);
         G::camera.zoom = 1.0f;
+        
 	}
 	~Application() = default;
 
